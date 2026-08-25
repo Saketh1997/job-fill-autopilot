@@ -1,0 +1,97 @@
+{
+  "_comment": [
+    "Config for jobspy_scan_parser.py (JobSpy multi-board scraper -> career-ops scan).",
+    "",
+    "Query syntax matters: Indeed searches the DESCRIPTION as well as the title, and it",
+    "does NOT handle parenthesised OR groups — '\"ml engineer\" OR \"ai engineer\" (\"new grad\"",
+    "OR \"entry level\")' returned nurses and hairstylists in testing. Keep each search to one",
+    "quoted phrase + a couple of qualifier words + '-' exclusions, and add searches rather",
+    "than widening one.",
+    "",
+    "Site list is 'indeed' only, measured on 2026-08-05 from this host:",
+    "  linkedin      - excluded on purpose. Webscrapper/webscrapper.py already scrapes it as",
+    "                  its own local_parser, and LinkedIn rate-limits hard when two scrapers",
+    "                  hit it in one run.",
+    "  zip_recruiter - HTTP 403 on every request (Cloudflare); needs the 'proxies' list.",
+    "  google        - 0 rows; Google Jobs needs the exact search string its UI produces,",
+    "                  which changes often. Tune google_search_term before re-enabling.",
+    "  glassdoor     - 'location not parsed' for country-level locations; needs a city.",
+    "Re-enable any of them per search with a 'sites' key on that search entry.",
+    "",
+    "hours_old falls back to portals.yml scan_options.posted_within_hours when null.",
+    "Indeed limitation: hours_old cannot be combined with job_type/is_remote/easy_apply.",
+    "Title, location and blacklist filtering is NOT done here — scan.mjs applies portals.yml",
+    "to whatever this parser emits, exactly as it does for every other provider."
+  ],
+  "sites": ["indeed"],
+  "results_wanted": 25,
+  "hours_old": null,
+  "country_indeed": "USA",
+  "description_format": "markdown",
+  "linkedin_fetch_description": true,
+  "cache_ttl_hours": 6,
+  "request_delay_seconds": 5,
+  "proxies": [],
+  "searches": [
+    {
+      "search_term": "\"machine learning engineer\" new grad -senior -staff -principal -manager",
+      "google_search_term": "machine learning engineer new grad jobs in United States since yesterday",
+      "location": "United States"
+    },
+    {
+      "search_term": "\"machine learning engineer\" entry level -senior -staff -principal -manager",
+      "google_search_term": "entry level machine learning engineer jobs in United States since yesterday",
+      "location": "United States"
+    },
+    {
+      "search_term": "\"ai engineer\" new grad -senior -staff -principal -manager",
+      "google_search_term": "ai engineer new grad jobs in United States since yesterday",
+      "location": "United States"
+    },
+    {
+      "search_term": "\"data engineer\" new grad -senior -staff -principal -manager",
+      "google_search_term": "data engineer new grad jobs in United States since yesterday",
+      "location": "United States"
+    },
+    {
+      "search_term": "\"data scientist\" new grad -senior -staff -principal -manager",
+      "google_search_term": "data scientist new grad jobs in United States since yesterday",
+      "location": "United States"
+    },
+    {
+      "search_term": "\"applied scientist\" new grad -senior -staff -principal -manager",
+      "google_search_term": "applied scientist new grad jobs in United States since yesterday",
+      "location": "United States"
+    },
+    {
+      "search_term": "\"research engineer\" new grad -senior -staff -principal -manager",
+      "google_search_term": "research engineer new grad jobs in United States since yesterday",
+      "location": "United States"
+    },
+    {
+      "search_term": "\"mlops engineer\" -senior -staff -principal -manager",
+      "google_search_term": "mlops engineer jobs in United States since yesterday",
+      "location": "United States"
+    },
+    {
+      "search_term": "\"platform engineer\" new grad -senior -staff -principal -manager",
+      "google_search_term": "platform engineer new grad jobs in United States since yesterday",
+      "location": "United States"
+    },
+    {
+      "search_term": "\"backend engineer\" new grad python -senior -staff -principal -manager",
+      "google_search_term": "backend engineer new grad jobs in United States since yesterday",
+      "location": "United States"
+    },
+    {
+      "search_term": "\"software engineer\" new grad machine learning -senior -staff -principal -manager -clearance",
+      "google_search_term": "software engineer new grad 2026 jobs in United States since yesterday",
+      "location": "United States"
+    },
+    {
+      "search_term": "\"robotics software engineer\" -senior -staff -principal -manager",
+      "google_search_term": "robotics software engineer new grad jobs in United States since yesterday",
+      "location": "United States"
+    }
+  ]
+}

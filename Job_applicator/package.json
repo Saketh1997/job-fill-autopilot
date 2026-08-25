@@ -1,0 +1,9 @@
+{
+  "name": "job-applicator",
+  "private": true,
+  "type": "commonjs",
+  "description": "Local deps for Job_applicator scripts. Kept separate from career-ops' package.json so update-system.mjs never clobbers them.",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.70.0"
+  }
+}

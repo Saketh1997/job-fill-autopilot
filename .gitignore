@@ -1,0 +1,152 @@
+# Personal data (user fills these)
+data/applications.md
+data/pipeline.md
+data/scan-history.tsv
+reports/*.md
+!reports/.gitkeep
+output/*
+!output/.gitkeep
+batch/logs/*
+!batch/logs/.gitkeep
+batch/batch-state.tsv
+batch/batch-input.tsv
+batch/tracker-additions/*.tsv
+!batch/tracker-additions/.gitkeep
+jds/*
+!jds/.gitkeep
+
+# User config and customization (never auto-updated)
+config/profile.yml
+portals.yml
+modes/_profile.md
+.update-dismissed
+.update-lock
+
+# Generated
+.resolved-prompt-*
+node_modules/
+bun.lock
+
+# Secrets. scan.mjs loads .env via dotenv and jobright_scan_parser.py reads
+# JOBRIGHT_COOKIE from it — a live session cookie must never be committed.
+.env
+.env.local
+.env.*.local
+
+# JobSpy scraper (jobspy_scan_parser.py): scrape cache + its own venv.
+# python-jobspy can't be installed into Debian's system python (PEP 668).
+.venv-jobspy/
+jobspy_jobs.csv
+jobspy_jobs_filtered.csv
+
+# JobRight JD text cache (jobright_scan_parser.py) — refetchable, grows large
+jobright_desc_cache.json
+
+# OS
+.DS_Store
+*.mov
+*.mp4
+
+# Claude Code local
+.claude/settings.local.json
+.claude/memory/
+career-dashboard
+package-lock.json
+jobright_apply_cache.json
+
+# LinkedIn employer-apply-URL cache (linkedin_apply.py) — refetchable
+linkedin_apply_cache.json
+
+# Credentials for job-site accounts — never commit
+Job_applicator/login.env
+Job_applicator/profile.json
+
+# Cached application answers (contains EEO + personal data)
+Job_applicator/cache/
+Job_applicator/answers/
+Job_applicator/logs/
+
+# ─────────────────────────────────────────────────────────────
+# Personal data, caches and generated output — never publish
+# ─────────────────────────────────────────────────────────────
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+
+# Cached application answers (contain EEO + personal responses)
+answers/
+Job_applicator/cache/
+Job_applicator/answers/
+Job_applicator/logs/
+Job_applicator/__pycache__/
+Job_applicator/node_modules/
+
+# Personal tracker / pipeline / outreach data
+data/*
+!data/.gitkeep
+harvest/*
+!harvest/.gitkeep
+logs/*
+!logs/.gitkeep
+
+# Interview prep is written about your own experience
+interview-prep/sessions/*
+!interview-prep/sessions/.gitkeep
+!interview-prep/sessions/README.md
+interview-prep/story-bank.md
+
+# Batch run state and generated tracker rows
+batch/tracker-additions/merged/
+batch/batch-input.*.tsv
+batch/batch-state.*.tsv
+
+# Scrapers: caches, harvested listings, browser logs
+Webscrapper/__pycache__/
+Webscrapper/*.csv
+.playwright-mcp/
+
+# Scraped listing data — refetchable, reveals your search history
+anthropic.json
+filtered_anthropic.json
+jobs.csv
+queries.json
+batch1.json
+batch2.json
+batch3.json
+
+# Your CV / resume — personal identifiers
+cv.md
+cv-source.md
+*.pdf
+
+# Local editor / MCP config (contains absolute paths)
+.mcp.json
+
+# Backups
+*.bak
+*.bak-*
+*.pre-*.bak
+
+# ── Job_applicator: credentials, personal corpus, generated output ──
+
+# Plaintext job-portal credentials — NEVER commit
+Job_applicator/logins.json
+Job_applicator/login.env
+Job_applicator/profile.json
+
+# Personal corpus (resume facts, transcript, bio, work history)
+Job_applicator/data/
+Job_applicator/documents/
+Job_applicator/content-bank.yml
+Job_applicator/answers.json
+Job_applicator/Resume.tex
+Job_applicator/work-eligibility-snapshot.md
+
+# Generated per-application output (~85MB, all personal)
+Job_applicator/jd/
+Job_applicator/plans/
+Job_applicator/resumes/
+Job_applicator/schema/
+Job_applicator/scrapes/
+Job_applicator/shots/

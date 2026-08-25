@@ -1,0 +1,23 @@
+{
+  "_readme": "Owner-authored portal rules, keyed by ATS (the same key drive_application.sh derives for cache/{ats}.json). THE MODEL NEVER WRITES THIS FILE. It exists because a drive run rewrites cache/{ats}.json wholesale: an auth block seeded there on 2026-08-09 was silently destroyed and the next run went straight back to the password form. Anything here is non-negotiable and survives every run. cache/{ats}.json remains the place for what a run DISCOVERS (selectors, step names, option strings); this file is for what the owner DECIDES.",
+  "_schema": {
+    "auth.instruction": "optional. When present it overrides login.env and governs how the run signs in.",
+    "rules": "optional list of strings, injected verbatim into the drive prompt as non-negotiable portal rules."
+  },
+
+  "amazon": {
+    "auth": {
+      "method": "login-with-amazon",
+      "creates_account": false,
+      "instruction": "ALWAYS sign in with \"Login with Amazon\". The sign-in page https://passport.amazon.jobs/ shows an email+password form ABOVE the SSO buttons: that form is NOT the way in and its password is not on file — typing into it produces 'This username/password doesn't match our records' and wastes the run. This failed on 2026-08-09 twice.\n\nThe flow is exactly two clicks:\n  1. Click \"Login with Amazon\" in the SSO row (not Google, not Apple, not LinkedIn).\n  2. Amazon shows a consent screen for the already-signed-in retail account. Click \"Allow\".\nThat is all. This browser profile holds a live Amazon retail session, so no password is normally requested — email and password were only ever needed the very first time, and that has already been done.\n\nIf Amazon's OWN sign-in page appears instead of the consent screen, the retail session has expired: you may enter the resolved credentials there ONCE, on amazon.com's page only. Never enter them on the passport.amazon.jobs form. If that single attempt fails, record it in blocked_on and stop."
+    },
+    "rules": [
+      "RESUME UPLOAD HAS A FIXED POSITION IN THE FLOW: answer the Work Eligibility page questions, and then, INSTEAD of clicking Continue, click the 'Resume' item in the left-hand 'My Progress' navigation and upload the tailored PDF passed on the command line. Only after that upload is done do you go back to clicking Continue through the remaining steps. Getting this order wrong is the known failure: on 2026-08-09 a run answered Work Eligibility, clicked Next, and landed directly on Review with the upload never done.",
+      "RESUME IS NOT PART OF THE WIZARD FLOW. Amazon reuses whatever resume was uploaded on a previous application and never shows a resume step of its own. Continue / Save and Continue will walk you from Work Eligibility to Review without once offering the upload, and the application then goes out with a stale resume from an earlier posting. The left-hand 'My Progress' nav is the only way in, and reaching Review is far too late.",
+      "After uploading, confirm the filename shown is the tailored PDF passed on the command line, not a previously stored one. If a stored resume is still attached, treat that as a do-not-submit condition and record it in blocked_on."
+    ],
+    "submit_preconditions": [
+      "The tailored PDF passed on the command line was uploaded via My Progress -> Resume during THIS run, after the Work Eligibility questions, and the filename shown on the page matches it. A resume Amazon carried over from an earlier application does not satisfy this."
+    ]
+  }
+}

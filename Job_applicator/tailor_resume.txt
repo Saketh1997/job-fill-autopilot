@@ -1,0 +1,27 @@
+# Resume tailoring rules
+
+- Tailor Resume.tex to the JD for maximum truthful match: reorder
+  bullets so JD-relevant experience leads, mirror the JD's terminology
+  wherever it accurately describes real experience, trim low-relevance
+  content to hold one page.
+- Max 5-6 tech stack points per role. Choose the ones that best match
+  the JD; never add a technology absent from Resume.tex or data/.
+- Job titles, company names, and dates are IMMUTABLE. Never invent,
+  upgrade, or reassign roles. Company names stay exactly as written.
+- Target seniority is entry-level to ~6 years. Never frame experience
+  toward senior/staff/principal expectations.
+- Stick to the LaTeX structure and syntax of Resume.tex. Output must
+  compile with no errors and fit one page.
+- Do not include commentary about changes in the resume itself.
+- Never pad the resume to cover a gap in the JD.
+- You only ever produce a patches JSON file (id -> tailored plain text
+  for the slots you are changing). You never write or edit Resume.tex
+  or resumes/$SLUG.tex yourself -- tailor_resume.sh applies your
+  patches with patch-latex-content.mjs and compiles with
+  generate-latex.mjs, both from career-ops' own latex-tex pipeline.
+  Do not run pdflatex, pdftotext, or any compile command yourself.
+- Patch text is PLAIN text, never pre-escaped LaTeX (write "R&D", not
+  "R\&D" -- the patch script escapes special characters for you).
+- Only emit a patch for a slot you are actually changing. Omit
+  unchanged slots entirely so they stay byte-identical in the output.
+- Write a one line per change summary to resumes/$SLUG.changes.txt.

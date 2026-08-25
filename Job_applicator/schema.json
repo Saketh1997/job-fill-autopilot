@@ -1,0 +1,180 @@
+[
+  {
+    "key": "first_name",
+    "kind": "TEXT",
+    "label": "First Name",
+    "required": true,
+    "options": [],
+    "source": "api"
+  },
+  {
+    "key": "last_name",
+    "kind": "TEXT",
+    "label": "Last Name",
+    "required": true,
+    "options": [],
+    "source": "api"
+  },
+  {
+    "key": "email",
+    "kind": "TEXT",
+    "label": "Email",
+    "required": true,
+    "options": [],
+    "source": "api"
+  },
+  {
+    "key": "phone",
+    "kind": "TEXT",
+    "label": "Phone",
+    "required": false,
+    "options": [],
+    "source": "api"
+  },
+  {
+    "key": "resume",
+    "kind": "FILE",
+    "label": "Resume/CV",
+    "required": false,
+    "options": [],
+    "source": "api"
+  },
+  {
+    "key": "resume_text",
+    "kind": "TEXTAREA",
+    "label": "Resume/CV",
+    "required": false,
+    "options": [],
+    "source": "api"
+  },
+  {
+    "key": "question_17928439008",
+    "kind": "TEXT",
+    "label": "(Optional) Personal Preferences",
+    "required": false,
+    "options": [],
+    "source": "api"
+  },
+  {
+    "key": "question_17928440008",
+    "kind": "TEXT",
+    "label": "Website",
+    "required": false,
+    "options": [],
+    "source": "api"
+  },
+  {
+    "key": "question_17928441008",
+    "kind": "SELECT",
+    "label": "Are you open to working in-person in one of our offices 25% of the time?",
+    "required": true,
+    "options": [
+      "Yes",
+      "No"
+    ],
+    "source": "api"
+  },
+  {
+    "key": "question_17928442008",
+    "kind": "TEXT",
+    "label": "When is the earliest you would want to start working with us?",
+    "required": false,
+    "options": [],
+    "source": "api"
+  },
+  {
+    "key": "question_17928443008",
+    "kind": "TEXT",
+    "label": "Do you have any deadlines or timeline considerations we should be aware of?",
+    "required": false,
+    "options": [],
+    "source": "api"
+  },
+  {
+    "key": "question_17928444008",
+    "kind": "SELECT",
+    "label": "AI Policy for Application",
+    "required": true,
+    "options": [
+      "Yes",
+      "No"
+    ],
+    "source": "api"
+  },
+  {
+    "key": "question_17928445008",
+    "kind": "TEXTAREA",
+    "label": "Why Anthropic?",
+    "required": true,
+    "options": [],
+    "source": "api"
+  },
+  {
+    "key": "question_17928446008",
+    "kind": "SELECT",
+    "label": "Do you require visa sponsorship?",
+    "required": true,
+    "options": [
+      "Yes",
+      "No"
+    ],
+    "source": "api"
+  },
+  {
+    "key": "question_17928447008",
+    "kind": "SELECT",
+    "label": "Will you now or will you in the future require employment visa sponsorship to work in the country in which the job you're applying for is located?",
+    "required": true,
+    "options": [
+      "Yes",
+      "No"
+    ],
+    "source": "api"
+  },
+  {
+    "key": "question_17928448008",
+    "kind": "TEXTAREA",
+    "label": "Additional Information",
+    "required": false,
+    "options": [],
+    "source": "api"
+  },
+  {
+    "key": "question_17928449008",
+    "kind": "TEXT",
+    "label": "LinkedIn Profile",
+    "required": false,
+    "options": [],
+    "source": "api"
+  },
+  {
+    "key": "question_17928450008",
+    "kind": "SELECT",
+    "label": "Are you open to relocation for this role?",
+    "required": true,
+    "options": [
+      "Yes",
+      "No"
+    ],
+    "source": "api"
+  },
+  {
+    "key": "question_17928451008",
+    "kind": "TEXT",
+    "label": "What is the address from which you plan on working? If you would need to relocate, please type \"relocating\".",
+    "required": false,
+    "options": [],
+    "source": "api"
+  },
+  {
+    "key": "question_17928452008",
+    "kind": "SELECT",
+    "label": "Have you ever interviewed at Anthropic before?",
+    "required": true,
+    "options": [
+      "Yes",
+      "No"
+    ],
+    "source": "api"
+  }
+]

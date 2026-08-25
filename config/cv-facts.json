@@ -1,0 +1,9 @@
+{
+  "allow_metrics": [
+    "85%",
+    "12x",
+    "12×",
+    "4,000+"
+  ],
+  "forbidden_phrases": []
+}
