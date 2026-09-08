@@ -142,6 +142,14 @@ const needsSponsorship = (() => {
 // posting that merely mentions the word. "We sponsor H-1B visas" and "visa
 // sponsorship available" must not trip it, so every branch needs an explicit
 // negation attached to the sponsoring verb.
+//
+// Refusing to sponsor is NOT by itself a reason to skip (narrowed 2026-09-05).
+// Saketh is on F-1 OPT with an EAD and is work-authorized for ~3 years with no
+// sponsorship at all (OPT + STEM OPT extension), so "we cannot sponsor a visa"
+// is a question he answers No to and still applies -- that is exactly what
+// CLAUDE.md's sponsorship rule prescribes. Skipping those cost real
+// applications: of 74 cached JDs matching the bar, only 21 named OPT/F-1.
+// The skip now requires the JD to exclude HIS status by name.
 const SPONSORSHIP_BAR = new RegExp([
   'do not apply .{0,120}?sponsor',
   '(does|do|will|can) ?not (provide|offer|sponsor|support)[^.]{0,60}(sponsor|visa|immigration)',
@@ -150,9 +158,15 @@ const SPONSORSHIP_BAR = new RegExp([
   'not (provide|offer) sponsorship',
 ].join('|'), 'i');
 
+// Employers that rule out OPT/CPT/F-1 itself, not merely H-1B sponsorship.
+// Veeva ("no sponsorship for H-1B, OPT, or TN status") excludes him today;
+// Garner Health ("unable to sponsor an employment visa at this time") does not.
+const STATUS_BAR = /\b(OPT|CPT|F-1|F1)\b|practical training/i;
+
 function sponsorshipBarred(jdPath) {
   try {
-    return SPONSORSHIP_BAR.test(fs.readFileSync(jdPath, 'utf8'));
+    const jd = fs.readFileSync(jdPath, 'utf8');
+    return SPONSORSHIP_BAR.test(jd) && STATUS_BAR.test(jd);
   } catch { return false; }
 }
 
@@ -364,20 +378,20 @@ for (const [i, job] of queue.entries()) {
       if (!hasBytes(jd)) { fail('jd', `get_jd.sh exit ${r.code}: ${r.stderr}`); continue; }
     }
 
-    // 1b. Eligibility. Some postings state outright that they will not sponsor
-    //     and instruct candidates who need it not to apply — GM and ZOLL both
-    //     name OPT/STEM OPT explicitly, and Veeva names OPT too. The candidate
-    //     is on F-1 OPT and requires sponsorship, so applying anyway wastes the
-    //     employer's time and the candidate's. Checked here rather than in the
-    //     question pass because it should cost nothing and stop the run before
-    //     the resume and two model calls are paid for.
+    // 1b. Eligibility. Only postings that rule out OPT/F-1 BY NAME — GM, ZOLL
+    //     and Veeva all do — are skipped. An employer that merely declines to
+    //     sponsor a visa is still a valid target: the candidate needs no
+    //     sponsorship for ~3 years, answers that question No, and applies.
+    //     Checked here rather than in the question pass because it should cost
+    //     nothing and stop the run before the resume and two model calls are
+    //     paid for.
     if (needsSponsorship && sponsorshipBarred(jd)) {
       rec.stage = 'eligibility';
       rec.result = 'skipped';
-      rec.notes.push('the JD says it will not sponsor and tells candidates needing sponsorship not to apply');
+      rec.notes.push('the JD rules out OPT/F-1 status by name, which is the candidate\'s actual status');
       rec.finished = new Date().toISOString();
       tally.skipped++; saveLedger();
-      log('  JD rules out candidates who need sponsorship — skipping');
+      log('  JD rules out OPT/F-1 status by name — skipping');
       continue;
     }
 

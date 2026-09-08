@@ -504,7 +504,25 @@ run_claude "$LOG" -p "$PROMPT" \
 KEEP_REASON=""
 RC=0
 
+# The model writes what it did; the shell writes what it was GIVEN. resume and
+# resume_kind are shell facts (the model never chose the file), and the submit
+# gate refuses a generic resume by reading resume_kind -- which drive runs were
+# not recording at all, so every one of them passed that check by default.
 if [ -s "$STATUS" ]; then
+  python3 - "$STATUS" "$RESUME" "$RESUME_KIND" "$URL" <<'MERGEPY' 2>/dev/null || true
+import json, os, sys, tempfile
+path, resume, kind, url = sys.argv[1:5]
+try:
+    d = json.load(open(path))
+except Exception:
+    raise SystemExit
+d["resume"], d["resume_kind"] = resume, kind
+d.setdefault("apply_url", url)
+fd, tmp = tempfile.mkstemp(dir=os.path.dirname(path))
+with os.fdopen(fd, "w") as fh:
+    json.dump(d, fh, indent=2)
+os.replace(tmp, path)
+MERGEPY
   cat "$STATUS"
   KEEP_REASON=$(python3 - "$STATUS" <<'PY' 2>/dev/null
 import json, sys

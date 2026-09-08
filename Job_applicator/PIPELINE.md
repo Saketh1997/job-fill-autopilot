@@ -154,7 +154,7 @@ Job_applicator/
   apply_answers.py            open-questions.md -> profile.json
   prime_page.mjs              navigate + kill cookie banner, deterministically
   scrape_page.mjs             render page through the shared browser, --fields etc.
-  close_tabs.sh               close leaked tabs by host over CDP
+  close_tabs.sh               close a posting's leaked tab over CDP
   captcha_relay.mjs           put a HUMAN's eyes on a CAPTCHA (never solves it)
   cap.sh / capshot.sh / show_image.py / compare_images.py   CAPTCHA viewing helpers
   mark_applied.py / mark_processed.py    tick pipeline.csv
@@ -764,16 +764,28 @@ Rules:
 
 ### 6.6 Eligibility gate (sponsorship)
 
-`run_ats_batch.mjs` skips a posting whose JD says the employer **will not sponsor**,
-when `profile.json` says the candidate needs sponsorship — **before** the resume and the
-model calls are paid for. The regex requires an **explicit negation attached to the
-sponsoring verb**, so "we sponsor H-1B" and "sponsorship available" do not trip it.
-On 2026-08-20 it caught GM (×2), ZOLL, RTX, PNC (×3) and Veeva, all of which name OPT
-outright; 7 of 18 Workday postings that day were barred this way.
+`run_ats_batch.mjs` skips a posting **before** the resume and the model calls are paid
+for, but only when the JD rules out the candidate's *actual* status. Two regexes must
+both match: `SPONSORSHIP_BAR` needs an **explicit negation attached to the sponsoring
+verb** (so "we sponsor H-1B" and "sponsorship available" do not trip it), and
+`STATUS_BAR` needs the JD to name **OPT / CPT / F-1 / practical training**.
 
-**Standing rule:** the candidate is on F-1 OPT and requires sponsorship long-term.
-Postings that say "do not apply if you need sponsorship" must be **skipped, not answered
-creatively**.
+**Narrowed 2026-09-05, and this matters.** The old gate skipped on `SPONSORSHIP_BAR`
+alone, which conflated "this employer will not sponsor a visa" with "this employer
+cannot hire Saketh". Those are different: he is work-authorized for ~3 years with **no
+sponsorship at all** (OPT + STEM OPT), so an employer that simply declines to sponsor is
+a valid target — he answers that question **No** and applies, which is exactly what
+§13.4 prescribes. Measured over the 2365 cached JDs: 74 matched `SPONSORSHIP_BAR`, but
+only **21** named OPT/F-1. The other **53 were eligible postings being thrown away**.
+
+```
+Veeva  "no sponsorship for employment visa status (e.g., H-1B, OPT, or TN)"  -> SKIP
+Garner "unable to sponsor or take over sponsorship of a visa at this time"   -> APPLY
+```
+
+**Standing rule:** skip only when the JD excludes OPT/F-1 **by name** — GM, ZOLL, RTX,
+PNC and Veeva all do. "We do not sponsor visas", on its own, is a question to answer
+No to, not a reason to skip.
 
 ### 6.7 Portal notes the drivers already encode
 
@@ -963,8 +975,10 @@ move to the next slug. Outreach for a posting whose form never submitted is out 
 
 ```bash
 ./linkedin-draft.sh <slug> <company> <role> <jd_url>
+./verify_outreach.py <slug>                     # exit 0 == no incorrect data
 ./linkedin-approve.sh <slug> approve            # or: reject [reason text...]
 ./linkedin-send.sh <slug>
+# or all four, unattended (2026-09-05):  ./auto_outreach.sh
 ```
 Batched variant after an unattended `--submit` run:
 `./run_outreach.sh [--days N] [--only <slug>] [--force]` — drafts for every posting whose
@@ -977,8 +991,50 @@ own `answers/{slug}.drive.json` says it submitted, skips anything already in the
 `linkedin_send.py` **hard-refuses anything whose queue status is not `approved`**,
 independent of the caller — a stray or malformed call can never send.
 
-**The standing submit authorization (2026-08-08) covers employer application forms
-ONLY, never LinkedIn messages.** That human approval step is deliberate and stays.
+**Updated 2026-09-05.** Saketh extended the authorization to LinkedIn messages:
+"as long as the outreaches don't have incorrect data, just send the outreaches."
+The three-script separation above is untouched — what changed is only *who signs
+off*. `verify_outreach.py` now holds the approver's seat, and it must exit 0
+before `auto_outreach.sh` will approve a draft:
+
+```bash
+./auto_outreach.sh [--limit N] [--dry-run]   # verify -> approve -> send, serially
+./verify_outreach.py <slug> | --all          # the gate alone; exit 0 == clean
+```
+
+It blocks on facts a recruiter can check — a graduation date after 2026-06-10 or a
+present-progressive "finishing my MS", a residence claim other than Chester
+Springs PA, robotics framed as built rather than studied, a "published" VLDB
+paper, an empty contact, a posting with no `submitted: true`.
+
+Two rules exist because the drafting model got them wrong on real sends:
+
+- **Elapsed-time claims.** On 2026-09-05 two drafts said "last week" and "a few
+  days ago" about applications submitted that same morning. `ELAPSED_CLAIMS` maps
+  each phrase to the days that would make it true and compares against
+  `answers/{slug}.drive.json` (`submitted_at`, else the file's mtime).
+- **Stale conference years.** "under revision for VLDB/SIGMOD 2025" recurs, and
+  went out in the Agave InMail. Any VLDB/SIGMOD/AIDB year that is not this year
+  or next is blocked.
+
+Style-only issues warn and never block, because the authorization is conditioned
+on incorrect *data*: em dashes, and "the message names neither the company nor the
+role" — that one cannot see through generic titles ("Software Engineer, Data
+Platform" is entirely stopwords) and failed 9 of 70 correctly-targeted messages.
+
+A chatbot liveness claim is checked against the service rather than a date: the
+portfolio RAG backend went down 2026-08-27 and came back 2026-09-05, so
+`chatbot_is_live()` probes `https://llm.sakethmetta.org/docs` (~140ms; `/response`
+costs ~12s of inference and can exceed 60s cold) and blocks only when it is truly
+unreachable. That host **403s a default urllib User-Agent**, so the probe sends a
+browser UA — without it a healthy backend reads as dead and blocks good drafts.
+
+Calibration: `./calibrate_outreach.py` replays the rules over the 70 messages
+Saketh approved by hand. **69 pass**; the one block is genuine — the Agave InMail
+said both "finishing my MS" (he had already graduated) and "VLDB/SIGMOD 2025".
+Re-run it after editing the rules: a verifier that rejects everything is as
+useless as one that rejects nothing, and a rule that fails hand-approved messages
+is a false positive until proven otherwise.
 
 ### 9.2 Queue lifecycle (`data/linkedin-outreach-queue.json`, one record per slug)
 
@@ -990,7 +1046,9 @@ needs_review -> pending_approval -> approved -> sent
   FAILED**. There is nothing to send. Re-run the draft; **do not hand-approve an empty
   record.**
 - Send **serially**, one slug at a time, checking each JSON result before the next.
-  **Do not loop the whole queue unattended.**
+  This outlived the 2026-09-05 approval change and still holds: `auto_outreach.sh`
+  reads each send's JSON and **stops the entire run on the first unconfirmed
+  send**, because one attempt is all a draft gets.
 - `linkedin_queue.py` CLI: `ingest <draft_result.json>` · `approve <slug>` ·
   `reject <slug> [--reason]` · `mark-sent <slug> --confirmation` ·
   `mark-failed <slug> --error` · `get <slug>` · `list [--status S]`.
@@ -1385,9 +1443,14 @@ The browser is persistent, so every run that ends without cleanup leaks a tab. A
 few days that is dozens of live Workday sessions eating memory and — worse — **a later
 run can attach to a stale tab of the same tenant and think it is already signed in.**
 ```bash
-./close_tabs.sh <url-or-host> [--dry-run] [--verbose]
+./close_tabs.sh <url-or-host> [--dry-run] [--verbose] [--host-wide]
 ```
-Matches by **host** (a full posting URL is fine). Only `page` targets are touched.
+Matches by **posting**, via `samePosting()` from `posting-identity.mjs` (changed
+2026-08-29 — it used to match by host, which made every finishing posting close every
+OTHER parked form on the same board; see 14.14). A URL carrying no posting id matches
+nothing, so cleanup leaks a tab rather than destroying someone else's filled form.
+`--host-wide` restores the old sweep for a human cleaning up. Only `page` targets are
+touched.
 
 ### 14.11 Two drivers in one browser fight over tabs
 
@@ -1405,6 +1468,108 @@ for 3 postings. No answer fixes it; it is an account-level cap.
 See §9.6. Always re-run stage 4 after the last submission of a batch.
 
 ---
+
+### 14.14 `close_tabs.sh` closed every posting on the board (FIXED 2026-08-29)
+
+`closeOrKeepTab()` (`ats_apply_common.mjs:1101`) hands `close_tabs.sh` the posting URL.
+The script reduced that to its **host** and closed every `page` target on it. Every
+embedded Greenhouse form is the same URL apart from `token=`:
+
+```
+job-boards.greenhouse.io/embed/job_app?for={org}&token={id}
+```
+
+so the first posting to finish with an empty `blocked_on` closed every OTHER posting's
+parked form. Cleanup was host-scoped; form parking is posting-scoped.
+
+**How it shows up:** `close_tabs: closed 8/8 tab(s) on boards.greenhouse.io` in one
+posting's `fill.log`, and then `READBACK: no open tab ... the filled form is gone` for
+every posting after it. The forms are gone, but the `.review.txt` sheets survive, so it
+reads like a readback bug rather than a destroyed batch.
+
+**Counter-intuitive tell:** a *blocked* posting survives and a *clean* one does not. The
+keep-branch fires only when `blocked_on`/`left_for_human` is non-empty, so failing is
+what saves a form.
+
+It ate the 2026-08-26 batch (see the `posting-identity.mjs` header) and then the
+2026-08-29 batch: six reviewed-pending forms — Hightouch, Together AI, Roblox, HP IQ,
+Luma, Vercel — destroyed by the Twitch run, plus two Ashby forms by Netic.
+
+**Fix:** the script now selects with `samePosting()` from `posting-identity.mjs`, the
+same identity the other three callers use. A URL with no posting id matches nothing:
+leaking a tab costs memory, over-matching destroys a filled application. `--host-wide`
+keeps the old sweep for a human.
+
+**Regression test:** `node Job_applicator/close-tabs-tests.mjs` (10 checks, stub CDP, no
+browser). Deliberately NOT registered in the root `test-all.mjs`: that file is System
+Layer per `AGENTS.md` and `update-system.mjs apply` would overwrite the entry. Run it by
+hand after touching `close_tabs.sh` or `posting-identity.mjs`.
+
+**Still open:** `postingKey()` falls back to host+path for portals it does not know, so
+two postings from one tenant whose id lives only in the query (UltiPro
+`OpportunityApply?opportunityId=...`) still share a key. Greenhouse, Ashby and Lever are
+handled explicitly; add a portal there before running a batch that parks two of its
+forms at once.
+
+
+### 14.15 The LinkedIn composer lives in a SHADOW ROOT (2026-09-08)
+
+`document.querySelector` from the page context **cannot see the message
+composer**. The host is `div.theme--light`; the whole compose form, its file
+inputs, its Send button and the message list are inside that shadow tree.
+Playwright's own selectors (`page.$`, `page.$$`) pierce open shadow roots, so
+`page.$(BOX)` finds the box while a `page.evaluate` + `document.querySelector`
+for the same selector returns null. Any check written the second way silently
+reports "not there" for things that are.
+
+This cost three real messages to a recruiter:
+
+- `closeOverlays()` queried only `document`, so it closed **nothing**. A stale
+  overlay from the previous target then satisfied the next target's compose-box
+  lookup, and the second contact's message was typed into **the first contact's**
+  conversation and sent there.
+- The post-send "did it land" check had the same blindness, so it reported
+  success for both.
+
+**Rules, all enforced in `send_followup_dm.mjs`:**
+1. Get the compose box as an ElementHandle, then do every read and traversal via
+   `box.evaluate(...)` from that element. Never re-resolve the selector.
+2. **Scope to the box's own conversation bubble**, not to the shadow root.
+   Several overlays share one shadow tree, so a root-wide "does the intended
+   name appear" test passes even when the box belongs to someone else. Climb to
+   `.msg-overlay-conversation-bubble` / `.msg-convo-wrapper` and require that
+   bubble to name exactly one person, the intended one.
+3. Pick the file input from **inside that same bubble**. There are two per
+   conversation: one `accept="image/*"` and one accepting `.pdf/.doc/...`.
+   Selecting page-wide and taking the last pdf-capable input can stage the file
+   on another conversation's form.
+
+### 14.16 A staged LinkedIn attachment is not a sent one (2026-09-08)
+
+The composer shows `"<name>.pdf 55 KB Attached"` as soon as a file is **staged**.
+That chip, and a settled upload with no progress indicator, are **not** evidence
+the file went out: on 2026-09-08 one contact's two messages both showed it and
+both arrived as text with no attachment, while another contact's message that
+staged identically arrived with the PDF.
+
+A dry-run therefore **cannot** distinguish the two — the staging is byte-identical.
+The only proof is in the delivered thread: an
+`.msg-s-event-listitem` containing `ui-attachment__filename` / a Download button.
+`send_followup_dm.mjs` checks this after sending and reports
+`sent_without_attachment` rather than success, because the standing rule is that
+every follow-up carries a resume ([[linkedin-followups-attach-resume]]).
+
+Root cause not yet established. Until it is, **verify every follow-up
+attachment in the thread afterwards**, and be ready to attach by hand.
+
+### 14.17 A human may be using the same browser (2026-09-08)
+
+The job browser is shared with Saketh's own LinkedIn session. On 2026-09-08 he
+was replying to a message at 10:55 while the outreach script was driving the
+same profile, and he deleted a misdelivered message out from under it. Open
+overlays that the script did not create are therefore normal, not corruption —
+which is exactly why target selection must be by conversation identity (14.15)
+and never by document order.
 
 ## 15. Diagnostics — how to tell what happened
 

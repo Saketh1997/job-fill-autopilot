@@ -331,6 +331,44 @@ export async function validationErrors(page) {
   ).then((v) => [...new Set(v)]).catch(() => []);
 }
 
+// Is a resume ACTUALLY attached to this form right now, and which file?
+//
+// ats_submit.mjs used to answer this from state.resume_uploaded_this_run — a
+// flag the per-ATS fillers set about their own work. Two problems: a filler
+// that uploaded and then had the page re-render still reports true, and any
+// OTHER filler (the agy drive path writes a different status schema entirely)
+// never sets it at all, so every application it filled was refused as unclean
+// no matter how complete the form was.
+//
+// The whole point of the submit gate is that it re-reads the live page instead
+// of trusting the filler. This is that, for the one attachment that decides
+// whether a submit is honest.
+//
+// Returns { attached, filename }. The filename is what lets the caller tell a
+// tailored resume from the generic one without trusting a status file.
+export async function resumeAttached(page) {
+  return page.evaluate(() => {
+    const clean = (s) => (s || '').replace(/\s+/g, ' ').trim();
+    const FILE = /[\w.\-()]+\.(pdf|docx?|rtf|txt)\b/i;
+
+    const boxes = [...document.querySelectorAll(
+      '[class*="file-upload"], [class*="attachment" i], [class*="upload" i], [data-field-path]',
+    )];
+    for (const b of boxes) {
+      const text = clean(b.innerText);
+      // The cover-letter box carries the same markup and often the same
+      // filename shape. Naming it here keeps a cover letter from being counted
+      // as the resume on a form that requires both.
+      if (!/resume|\bcv\b/i.test(text)) continue;
+      if (/cover\s*letter/i.test(text) && !/resume|\bcv\b/i.test(text.split(/cover\s*letter/i)[0] || '')) continue;
+      const chip = b.querySelector('[class*="filename" i], [class*="file-name" i]');
+      const name = clean(chip?.textContent).match(FILE)?.[0] || text.match(FILE)?.[0] || '';
+      if (name) return { attached: true, filename: name };
+    }
+    return { attached: false, filename: '' };
+  }).catch(() => ({ attached: false, filename: '' }));
+}
+
 // ---------------------------------------------------------------- filling
 // Every filler returns true only after reading the value back off the page.
 // "I called type() and it did not throw" is not evidence, and treating it as

@@ -24,6 +24,8 @@ CLI (used by n8n and by the shell wrappers):
   python3 linkedin_queue.py reject  <slug> [--reason TEXT]
   python3 linkedin_queue.py mark-sent   <slug> --confirmation TEXT
   python3 linkedin_queue.py mark-failed <slug> --error TEXT
+  python3 linkedin_queue.py followup <slug> --message TEXT [--channel dm]
+                                        [--confirmation TEXT]
   python3 linkedin_queue.py get    <slug>                 # prints record or {}
   python3 linkedin_queue.py list   [--status STATUS]       # prints array
 """
@@ -131,6 +133,14 @@ def ingest(draft_path):
         "alumni_evidence": draft.get("alumni_evidence", ""),
         "referral_power": referral_power,
         "referral_rationale": draft.get("referral_rationale", ""),
+        # Added 2026-09-02 so an approver can see, on the record itself, WHAT was
+        # asked and the evidence the contact still works there. Referrals are an
+        # employee-to-employee favour, so asking a recruiter or a hiring manager for
+        # one reads badly; and a note written to someone who has already left is worse
+        # than sending nothing. Both are judgement calls a human should be able to
+        # check before approving, without opening the raw draft file.
+        "ask_used": draft.get("ask_used", ""),
+        "current_employment_evidence": draft.get("current_employment_evidence", ""),
         "inmail_subject": subject,
         "inmail_body": body,
         "inmail_body_chars": len(body),
@@ -165,6 +175,45 @@ def set_status(slug, status, **fields):
     return rec
 
 
+def add_followup(slug, message, channel="dm", confirmation=""):
+    """Append a post-acceptance message to a record's `followups` list.
+
+    A follow-up is not a status change: the record stays `sent`, because the
+    outreach it belongs to was already sent. It is appended rather than
+    overwritten so a second follow-up can never erase the first.
+
+    This exists because follow-up DMs have no send path of their own --
+    linkedin_send.py does connect notes and InMail only -- so they get driven
+    ad hoc, and an ad-hoc sender that forgets to write back leaves the record
+    reading `followups: null` for someone who was in fact already messaged.
+    That has happened (Jatin Gupta, 2026-08-24). Treat a null/empty followups
+    field as UNKNOWN, never as proof that nobody was contacted; the LinkedIn
+    message thread is the only authoritative check.
+    """
+    records = load()
+    rec = find(records, slug)
+    if rec is None:
+        raise SystemExit(f"no queue entry for slug {slug!r}")
+    if rec.get("status") != "sent":
+        raise SystemExit(f"{slug!r} is {rec.get('status')!r}, not 'sent' -- "
+                         "a follow-up only makes sense after the outreach went out")
+    entry = {
+        "sent_at": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z"),
+        "channel": channel,
+        "chars": len(message),
+        "message": message,
+    }
+    if confirmation:
+        entry["confirmation"] = confirmation
+    rec.setdefault("followups", None)
+    if not isinstance(rec.get("followups"), list):
+        rec["followups"] = []
+    rec["followups"].append(entry)
+    rec["updated_at"] = _now()
+    _atomic_save(records)
+    return rec
+
+
 def main():
     p = argparse.ArgumentParser()
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -174,6 +223,9 @@ def main():
     sp = sub.add_parser("reject"); sp.add_argument("slug"); sp.add_argument("--reason", default="")
     sp = sub.add_parser("mark-sent"); sp.add_argument("slug"); sp.add_argument("--confirmation", default="")
     sp = sub.add_parser("mark-failed"); sp.add_argument("slug"); sp.add_argument("--error", default="")
+    sp = sub.add_parser("followup"); sp.add_argument("slug")
+    sp.add_argument("--message", required=True); sp.add_argument("--channel", default="dm")
+    sp.add_argument("--confirmation", default="")
     sp = sub.add_parser("get"); sp.add_argument("slug")
     sp = sub.add_parser("list"); sp.add_argument("--status", default=None)
 
@@ -190,6 +242,9 @@ def main():
                                      error=None, confirmation=args.confirmation), indent=2))
     elif args.cmd == "mark-failed":
         print(json.dumps(set_status(args.slug, "failed", error=args.error), indent=2))
+    elif args.cmd == "followup":
+        print(json.dumps(add_followup(args.slug, args.message, args.channel,
+                                      args.confirmation), indent=2))
     elif args.cmd == "get":
         print(json.dumps(get(args.slug), indent=2))
     elif args.cmd == "list":

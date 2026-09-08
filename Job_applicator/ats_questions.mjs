@@ -405,6 +405,25 @@ const PROFILE_RULES = [
     const d = new Date();
     return `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}/${d.getFullYear()}`;
   }],
+  // Voluntary self-ID the candidate has NOT recorded, and which must therefore
+  // resolve to an explicit decline rather than fall through to a model that
+  // improvises one. On 2026-08-29 a single batch asserted "Heterosexual" on
+  // three forms (Together AI, Luma, Vercel) and "Under 30" on a fourth; none of
+  // it was sourced from anywhere, and each was a claim about a real person on
+  // an employer's form. CLAUDE.md is explicit that a question with no truthful
+  // answer in profile.json/cv.md/data must not be answered.
+  //
+  // ORDER MATTERS: /gender/ is unanchored and matches the substring inside
+  // "transgender", so before this rule existed "Do you identify as
+  // transgender?" was answered from profile.gender ("Male") — a wrong answer
+  // to a different question, not merely a readback artefact.
+  [/transgender/i, (p) => p.transgender_status],
+  [/sexual orientation|how do you identify your sexuality|\blgbtq?\b/i, (p) => p.sexual_orientation],
+  [/what is your (current )?age\b|\bage (range|bracket|group|band)\b/i, (p) => p.age_bracket],
+  // Provenance. The scanner found the posting on a job board; anything naming a
+  // person or an event is a fabrication. See the note beside the profile key.
+  [/how did you (first )?hear|how did you (first )?discover|where did you (first )?hear|referral source/i,
+    (p) => p.application_questions?.how_did_you_hear_about_this_role],
   [/gender|what is your sex/i, (p) => p.gender],
   [/hispanic|latino/i, (p) => (/hispanic|latino/i.test(p.race_ethnicity || '') ? 'Yes' : 'No')],
   [/race|ethnic/i, (p) => p.race_ethnicity],

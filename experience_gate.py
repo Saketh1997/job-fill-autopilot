@@ -126,6 +126,90 @@ NO_SPONSORSHIP_FP = re.compile(
     r"does\s+not\s+guarantee\s+sponsorship|track\s+record\s+of\s+offering", re.I)
 
 
+# Internships and co-ops that require the candidate to still BE a student.
+#
+# The candidate completed his MS on 2026-06-10 (modes/_custom.md). A posting
+# that requires active enrolment is one he cannot hold, and the only ways to
+# submit it are to claim he is still a student -- which the house rules forbid
+# outright -- or to knowingly send a recruiter an ineligible application.
+#
+# The years-of-experience gate never caught these: an internship asks for zero
+# years, and "new grad"/"intern" markers made NEWGRAD_PASS rescue them. Verkada
+# reached a filled form twice on 2026-08-26 asking for someone "actively
+# pursuing a Bachelor's or Master's degree ... graduating by June 2028".
+ENROLLMENT_REQ = re.compile(
+    r"(?:actively|currently)\s+(?:pursuing|enrolled|studying)"
+    r"|must\s+be\s+(?:currently\s+)?enrolled"
+    r"|enrolled\s+in\s+an?\s+(?:accredited|undergraduate|graduate|degree)"
+    r"|rising\s+(?:junior|senior|sophomore)"
+    r"|return(?:ing)?\s+to\s+(?:school|campus|university)"
+    r"|pursuing\s+(?:a|an)\s+(?:BS|BA|MS|MA|Bachelor|Master)",
+    re.I)
+
+# ...but plenty of postings accept EITHER a current student or a recent
+# graduate. Blocking those would throw away exactly the roles he should get.
+# The escape hatch has to appear in the same sentence as the requirement.
+ENROLLMENT_OK = re.compile(
+    r"\b(?:recent(?:ly)?\s+grad|have\s+(?:recently\s+)?graduated|graduated"
+    r"|completed\s+(?:a|an|your|their)?\s*(?:BS|BA|MS|MA|Bachelor|Master|degree)"
+    r"|degree\s+in\s+hand|or\s+have\s+completed|new\s+grad)",
+    re.I)
+
+
+def enrollment_block(text):
+    """Return the offending sentence when a posting demands active enrolment.
+
+    None when it does not, or when the same sentence also accepts a graduate.
+    """
+    for raw in re.split(r"(?<=[.;])\s+|\n|<li>|</li>", text or ""):
+        sentence = re.sub(r"<[^>]+>", " ", raw)
+        if not ENROLLMENT_REQ.search(sentence):
+            continue
+        if ENROLLMENT_OK.search(sentence):
+            continue
+        return " ".join(sentence.split())[:160]
+    return None
+
+
+GRAD_YEAR, GRAD_MONTH = 2026, 6
+
+MONTHS = {m: i for i, m in enumerate(
+    ["january", "february", "march", "april", "may", "june", "july",
+     "august", "september", "october", "november", "december"], 1)}
+
+# "Graduating between December 2026 and June 2027" is an eligibility WINDOW, and
+# a candidate who graduated before it opens is as ineligible as one who has not
+# started. The years gate cannot see this at all: the posting asks for zero
+# years of experience and reads as a perfect new-grad match.
+#
+# This was not caught in time on 2026-08-26 and an application went to Zip for a
+# role whose window opened six months after the candidate graduated. The answers
+# on it were all true; it was simply not a role he could hold.
+GRAD_WINDOW = re.compile(
+    r"graduat\w*\s+between\s+([A-Za-z]+)\s+(\d{4})\s+and\s+([A-Za-z]+)\s+(\d{4})", re.I)
+GRAD_AFTER = re.compile(
+    r"graduat\w*\s+(?:on\s+or\s+)?after\s+([A-Za-z]+)?\s*(\d{4})", re.I)
+
+
+def graduation_block(text, grad_year, grad_month):
+    """Return the offending phrase when the posting's graduation window excludes us."""
+    got = grad_year * 12 + grad_month
+    for m in GRAD_WINDOW.finditer(text or ""):
+        m1, y1, m2, y2 = m.group(1).lower(), int(m.group(2)), m.group(3).lower(), int(m.group(4))
+        if m1 not in MONTHS or m2 not in MONTHS:
+            continue
+        lo, hi = y1 * 12 + MONTHS[m1], y2 * 12 + MONTHS[m2]
+        if lo > hi:
+            lo, hi = hi, lo
+        if not (lo <= got <= hi):
+            return " ".join(m.group(0).split())[:160]
+    for m in GRAD_AFTER.finditer(text or ""):
+        mon = MONTHS.get((m.group(1) or "").lower(), 1)
+        if got < int(m.group(2)) * 12 + mon:
+            return " ".join(m.group(0).split())[:160]
+    return None
+
+
 def work_auth_block(text):
     """Reason string if the JD is closed to an F-1 OPT candidate, else None.
 
@@ -376,6 +460,27 @@ def main():
             blocked[url] = wa
             hist_status[url] = "skipped_clearance"
             print(f"  BLOCK work-auth ({wa})  {company} | {title}")
+            continue
+
+        # Before the new-grad rescue below, not after: an internship carries
+        # every new-grad marker there is, so NEWGRAD_PASS would wave through the
+        # exact postings this rule exists to stop.
+        # GRAD_YEAR/GRAD_MONTH: the candidate's actual completion date, from
+        # modes/_custom.md and profile education.graduated (2026-06-10).
+        grad = graduation_block(text, GRAD_YEAR, GRAD_MONTH)
+        if grad:
+            blocked[url] = "grad-window"
+            hist_status[url] = "skipped_enrollment"
+            print(f"  BLOCK grad-window  {company} | {title}")
+            print(f"        \u21b3 {grad}  (candidate graduated {GRAD_YEAR}-{GRAD_MONTH:02d})")
+            continue
+
+        enrol = enrollment_block(text)
+        if enrol:
+            blocked[url] = "enrollment"
+            hist_status[url] = "skipped_enrollment"
+            print(f"  BLOCK needs-enrollment  {company} | {title}")
+            print(f"        \u21b3 {enrol}")
             continue
 
         yrs, phd_only, from_required = required_years_for_ms(text)

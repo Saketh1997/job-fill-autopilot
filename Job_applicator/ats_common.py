@@ -124,7 +124,15 @@ SERVER = StdioServerParameters(
     command=_NODE20_BIN + "/node",
     args=[_NODE20_BIN + "/playwright-mcp",
           "--cdp-endpoint", os.environ.get("CDP_ENDPOINT",
-                                           "http://localhost:9226")],
+                                           "http://localhost:9226"),
+          # playwright-mcp's action timeout defaults to 5000ms. LinkedIn's
+          # invite dialog is an Ember component that re-renders between the
+          # snapshot and the click, so the locator resolves but stays
+          # unactionable past 5s and the tool call is rejected. That burns an
+          # outreach draft outright (linkedin_send.py gets ONE attempt and
+          # writes status=failed on any ambiguity), so the budget is raised.
+          # Costs nothing on a healthy click -- it only bounds the failure.
+          "--timeout-action", os.environ.get("MCP_ACTION_TIMEOUT", "20000")],
     env={**os.environ, "PATH": _NODE20_BIN + ":" + os.environ.get("PATH", "")},
 ) if HAVE_MCP else None
 

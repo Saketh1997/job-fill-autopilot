@@ -31,8 +31,9 @@ import path from 'node:path';
 import readline from 'node:readline';
 import {
   BASE, connect, validationErrors, auditRequired, missingRequired,
-  submitAndVerify, writeStatus, appendCacheRun, markApplied, norm,
+  submitAndVerify, writeStatus, appendCacheRun, markApplied, norm, resumeAttached,
 } from './ats_apply_common.mjs';
+import { samePosting } from './posting-identity.mjs';
 
 // A required file input is only "already satisfied" when it IS the resume
 // field. Greenhouse's Celonis posting also requires a Cover Letter, and
@@ -84,6 +85,16 @@ if (!opts.slug && !opts.list && !opts.all) {
   console.error('usage: ats_submit.mjs <slug> [--yes] | --list | --all');
   process.exit(1);
 }
+
+// A CSS identifier may not begin with a digit, so a pure-numeric control id
+// (Greenhouse demographic questions are all of this shape) has to have its
+// first character written as a hex escape: 4 -> '\\34 '. Escaping only the
+// non-word characters, as this did before 2026-08-29, produces '#4005246007'
+// and throws SyntaxError out of locator.count().
+const cssEscapeId = (id) => {
+  const esc = String(id).replace(/([^\w-])/g, '\\$1');
+  return /^[0-9]/.test(esc) ? `\\3${esc[0]} ${esc.slice(1)}` : esc;
+};
 
 const readJson = (p, f = null) => { try { return JSON.parse(fs.readFileSync(p, 'utf8')); } catch { return f; } };
 
@@ -191,10 +202,14 @@ try {
 
     // The filled form lives in ONE tab. Reopening the URL would serve a blank
     // form and submit nothing, so a missing tab is a refusal, not a retry.
-    const want = (state.apply_url || state.url).split('?')[0].replace(/\/$/, '');
+    // Identity, not path. Every embedded Greenhouse form lives at the same
+    // /embed/job_app path and differs only in ?token, which this used to strip
+    // before comparing — so the match could land on a DIFFERENT company's
+    // filled form and submit it. It also missed the boards.greenhouse.io ->
+    // job-boards.greenhouse.io redirect and reported a live tab as gone.
+    const want = (state.apply_url || state.url);
     const page = ctx.pages().find((p) => {
-      try { return p.url().split('?')[0].replace(/\/$/, '').startsWith(want.replace(/\/apply$|\/application$/, '')); }
-      catch { return false; }
+      try { return samePosting(p.url(), want); } catch { return false; }
     });
     if (!page) {
       log(`${slug}: no open tab on ${want} — the filled form is gone. Re-run:`);
@@ -211,7 +226,7 @@ try {
     for (const pair of (opts.set || [])) {
       const eq = pair.indexOf('=');
       const [k, v] = [pair.slice(0, eq), pair.slice(eq + 1)];
-      const el = page.locator(`#${k.replace(/([^\w-])/g, '\\$1')}, [name="${k.replace(/"/g, '\\"')}"]`).first();
+      const el = page.locator(`#${cssEscapeId(k)}, [name="${k.replace(/"/g, '\\"')}"]`).first();
       if (!(await el.count())) { log(`--set ${k}: no such control on the page`); continue; }
       const tag = await el.evaluate((n) => n.tagName.toLowerCase()).catch(() => '');
       if (tag === 'select') {
@@ -229,16 +244,27 @@ try {
 
     const formSel = (await page.locator(cfg.form).count()) ? cfg.form : 'body';
     const fields = await auditRequired(page, formSel);
+    // What is actually attached to the form right now, read off the page. This
+    // has to come before the required-field audit, because a required resume
+    // input reads as "empty" from the DOM no matter what: once a file is
+    // accepted the input still holds no value, and the filename lives in a chip
+    // beside it. Exempting it on state.resume_uploaded_this_run alone meant any
+    // filler that does not write that flag (the agy drive path writes a
+    // different status schema entirely) had every one of its applications
+    // refused for a resume that was demonstrably attached.
+    const att = await resumeAttached(page);
     // The security-code boxes are the human check, not part of the application.
     const missing = missingRequired(fields)
-      .filter((f) => f.type !== 'file' || !isResumeField(f) || !state.resume_uploaded_this_run)
+      .filter((f) => f.type !== 'file' || !isResumeField(f)
+        || !(att.attached || state.resume_uploaded_this_run))
       .filter((f) => !/^security-input-/.test(f.name || ''));
     const errs = await validationErrors(page);
 
     console.error('\n' + '─'.repeat(72));
     console.error(`${slug}`);
     console.error(`  ${state.ats}  ·  ${page.url()}`);
-    console.error(`  resume:  ${path.basename(state.resume || '(none)')} (${state.resume_kind})`);
+    console.error(`  resume:  ${att.attached ? att.filename : '(NONE ATTACHED)'}`
+      + `${state.resume_kind ? ` (recorded: ${state.resume_kind})` : ''}`);
     console.error(`  filled:  ${(state.verified || []).length} field(s) verified this run`);
     if (state.from_cache?.length) console.error(`  cached:  ${state.from_cache.length} answer(s) reused`);
     if (state.model_cost_usd) console.error(`  model:   $${Number(state.model_cost_usd).toFixed(4)}`);
@@ -247,9 +273,23 @@ try {
     for (const e of errs.slice(0, 4)) console.error(`  ERROR:   ${e.slice(0, 160)}`);
     console.error('─'.repeat(72));
 
-    const clean = !missing.length && !errs.length && state.resume_uploaded_this_run;
+    // The live page decides. state.resume_uploaded_this_run is kept as a second
+    // way to say yes, not as the only one — see resumeAttached().
+    const clean = !missing.length && !errs.length
+      && (att.attached || state.resume_uploaded_this_run);
+    if (!att.attached && !state.resume_uploaded_this_run) {
+      console.error('  EMPTY:   no resume is attached to this form');
+    }
     if (!clean && !opts.force) {
       log(`${slug}: not clean — fix it in the open tab and re-run, or pass --force`);
+      tally.blocked++;
+      continue;
+    }
+    // The attached FILE is the evidence, not the status file. Every tailored
+    // resume is named for its slug; anything else on the form is the generic
+    // one under whatever name profile.json gives it.
+    if (att.attached && !att.filename.startsWith(slug) && !opts.force) {
+      log(`${slug}: the attached resume is "${att.filename}", not the tailored ${slug}.pdf — refusing`);
       tally.blocked++;
       continue;
     }

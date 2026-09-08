@@ -236,9 +236,32 @@ def dialog_entries(txt):
 
 async def click(s, hit, settle=1.0):
     # NOTE: this playwright-mcp names the argument `target`, not `ref`.
-    _check(await s.call_tool("browser_click",
-                             {"element": hit[1], "target": str(hit[2])}),
-           f"click {hit[1]!r}")
+    #
+    # Fallback added 2026-08-28. On LinkedIn's "Add a note to your invitation?"
+    # dialog, browser_click resolves the ref to the right <button> and then
+    # times out on playwright's actionability wait -- verified NOT a timing
+    # race (it still failed at 20s) and NOT an overlay: elementFromPoint
+    # returns the button, the box is stable across frames, no animation, no
+    # pointer-events:none ancestor, and a plain playwright .click() on the same
+    # button succeeds immediately. It is a defect in the aria-ref click path of
+    # playwright-mcp 0.0.79 against this Ember dialog.
+    #
+    # A failed click here is not recoverable by rerunning: linkedin_send.py
+    # gets ONE attempt and writes status=failed, which burns the draft and
+    # forces a human re-approval. So on rejection we re-dispatch the click via
+    # browser_evaluate on THE SAME REF -- the exact element find_by_name
+    # already chose under its avoid-list, so this cannot wander onto "Send
+    # without a note". It skips actionability, which is safe only because the
+    # ref was resolved from the current snapshot moments earlier.
+    try:
+        _check(await s.call_tool("browser_click",
+                                 {"element": hit[1], "target": str(hit[2])}),
+               f"click {hit[1]!r}")
+    except ToolError as exc:
+        _check(await s.call_tool("browser_evaluate",
+                                 {"element": hit[1], "target": str(hit[2]),
+                                  "function": "(el) => el.click()"}),
+               f"click {hit[1]!r} (evaluate fallback after: {exc})")
     await s.call_tool("browser_wait_for", {"time": settle})
 
 
@@ -312,7 +335,7 @@ async def send_inmail(s, slug, rec, snap):
 
     confirmation = (f"InMail sent: clicked {send_btn[1]!r} "
                     f"(subject {len(subject)} chars, body {len(body)} chars)")
-    q.set_status(slug, "sent", confirmation=confirmation, channel_used="inmail")
+    q.set_status(slug, "sent", sent_at=q._now(), confirmation=confirmation, channel_used="inmail")
     return {"sent": True, "slug": slug, "channel": "inmail",
             "confirmation": confirmation}
 
@@ -416,7 +439,7 @@ async def send_connect(s, slug, rec, snap):
         # click-confirmed only. Recorded honestly rather than implied.
         confirmation = f"clicked {send_btn[1]!r} via message flow (not independently verified)"
 
-    q.set_status(slug, "sent", confirmation=confirmation, channel_used=mode)
+    q.set_status(slug, "sent", sent_at=q._now(), confirmation=confirmation, channel_used=mode)
     return {"sent": True, "slug": slug, "channel": mode, "confirmation": confirmation}
 
 

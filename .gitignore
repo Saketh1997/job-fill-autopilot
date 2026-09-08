@@ -150,3 +150,43 @@ Job_applicator/resumes/
 Job_applicator/schema/
 Job_applicator/scrapes/
 Job_applicator/shots/
+
+# --- added 2026-09-08: keep third-party and personal data out of a PUBLIC repo ---
+# One-off senders with real recruiters' names, LinkedIn URLs and the messages
+# sent to them. The pipeline's own senders read from the queue instead.
+Job_applicator/send_custom_outreach*.mjs
+Job_applicator/send_outreach_batch.mjs
+Job_applicator/send_all_pending_outreach.mjs
+# Generated cover letters
+Job_applicator/covers/
+# Throwaway debugging scratch from live application forms (may hold EEO answers,
+# salary, signatures)
+Job_applicator/scratch_*.js
+Job_applicator/scratch_*.py
+Job_applicator/adp_body.html
+# Saved search-engine and profile-search pages: other people's data
+bing.html
+yahoo.html
+ddg.html
+ddg_it.html
+tmp.html
+search_results.html
+find_linkedin*.py
+search_profiles.py
+search_linkedin*.js
+search_bing.py
+search_google.py
+search.py
+search.js
+ddg.py
+# Misc local artefacts
+Job_applicator/tmp.env
+*:Zone.Identifier
+vestwell_github.json
+cadence_output.json
+# One-off per-company form fillers with hardcoded personal details
+Job_applicator/fill_verkada.mjs
+Job_applicator/fill_gender.mjs
+Job_applicator/fill_remaining.mjs
+Job_applicator/fill_old_mission_direct.mjs
+fill_consent.js

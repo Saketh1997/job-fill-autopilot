@@ -322,7 +322,16 @@ async function hasControl(page, id) {
 // Greenhouse ids are safe already, but a question id is server-generated and
 // this is the one place a bad one would become a selector.
 function cssId(id) {
-  return String(id).replace(/([^\w-])/g, '\\$1');
+  // A CSS identifier may not BEGIN with a digit, and Greenhouse demographic
+  // question ids are pure numbers (e.g. 4005246007). Escaping only the
+  // non-word characters leaves '#4005246007', which throws
+  // "SyntaxError: '#4005246007' is not a valid selector" out of
+  // locator.count() and aborts the whole fill — 29 required fields were left
+  // empty on Energy Solutions this way on 2026-08-29. A leading digit has to
+  // become its hex escape: 4 -> '\\34 ', which is the same form readback.mjs
+  // already emits (#\\34 012867007).
+  const esc = String(id).replace(/([^\w-])/g, '\\$1');
+  return /^[0-9]/.test(esc) ? `\\3${esc[0]} ${esc.slice(1)}` : esc;
 }
 
 async function fillInput(page, id, value, label, required) {

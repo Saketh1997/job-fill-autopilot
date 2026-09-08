@@ -162,16 +162,229 @@
   file order) shows the latest additions in its first rows. Never append new
   entries to the bottom (scan.mjs appends — move them up before syncing).
 
+- **agy fills, Claude reviews, agy submits** (added 2026-08-26): the application
+  loop is split by what each model is actually good at. `agy` (gemini-3.7-flash,
+  via `Job_applicator/agy_step.sh`) is the orchestrator — it navigates, clicks,
+  types and uploads, because it has the quota for volume and is good at driving a
+  browser. Claude is the planner — it never touches the browser; it reads the
+  form back off the live page with `node Job_applicator/readback.mjs <slug>` and
+  judges whether each answer is TRUE and actually answers the question asked.
+  Per posting, serially:
+    1. `./Job_applicator/agy_step.sh fill <slug>` — fills, never submits
+       (delegates to `drive_application.sh --no-submit`, so the portal cache,
+       credential resolution and honeypot rules all still apply)
+    2. `node Job_applicator/readback.mjs <slug>` — live form -> reviewable sheet
+    3. Claude reviews and writes `Job_applicator/answers/{slug}.corrections.json`
+       with `verdict` ∈ submit | fix | hold
+    4. if `fix`: `./Job_applicator/agy_step.sh fix <slug>`, then back to step 2
+       (at most two fix rounds; a third means something is wrong that agy cannot
+       resolve — set `hold` and leave the tab open)
+    5. `./Job_applicator/agy_step.sh submit <slug>`
+  Never ask agy to decide whether an answer is right, and never ask Claude to
+  drive the browser. Crossing the two is what this split exists to prevent.
+- **Verify a drafted contact EXISTS before sending to them** (added 2026-08-26
+  after a fabricated one): `outreach-review.mjs` checks the profile URL's SHAPE
+  (`linkedin.com/in/...`), not whether it resolves. A redraft produced
+  "Mitanshu Hitesh Gada, SDE at Amazon", is_alumni true, evidence "as stated in
+  his LinkedIn search snippet" — and the URL returned "This page doesn't exist".
+  The note opened "as a fellow OSU grad". Two failures at once: an invented
+  profile and an invented shared tie.
+  So before approving any outreach draft:
+    - open the profile URL and confirm it loads and is that person
+    - if `is_alumni` is true, confirm Oregon State appears in their EDUCATION
+      section, not in a search snippet. A snippet containing both the company
+      and "Oregon State" proves nothing. (Tristan Luther at SpaceX checked out
+      this way — BS ECE, OSU, 2017-2022 — so the check passes real ones too.)
+    - a draft whose profile 404s is REJECTED, never re-pointed at someone else
+  The sender must also be told: if a profile does not exist, record
+  "profile_not_found" and stop — never substitute a different person.
+- **agy will sometimes submit during a fix step. Assume it can** (added
+  2026-08-26 after it happened): `agy_step.sh fix` tells the model three
+  separate times not to submit — "DO NOT SUBMIT", "do not click Submit, Apply,
+  Finish or Send", "if you find yourself on a confirmation page, something has
+  gone wrong". On impact.com it set the field, clicked Submit anyway, and
+  reported `"submitted": true` in the same result. Nothing in the shell can stop
+  it: the model holds the browser for the whole turn.
+  Two consequences, both now handled:
+    - `agy_step.sh fix` DETECTS the breach, exits 3, marks the posting applied
+      (otherwise a sent application sits at `applied=FALSE` forever, because the
+      submitter that normally records it never ran), and appends to
+      `Job_applicator/logs/guardrail-breaches.tsv`.
+    - The real defence is ORDERING, not instruction: never leave a wrong or
+      unverified answer standing while asking agy to fix a different field. Every
+      correction batch must be safe to submit at the moment it is applied,
+      because it might be. Fix the fabrications and the wrong values FIRST, and
+      let the mechanical "did not commit" retries be the last round.
+- **Check ELIGIBILITY against the JD before reviewing answers** (added
+  2026-08-26, after a wasted application): a form whose every answer is true can
+  still be an application the candidate cannot be hired from. The experience
+  gate reads years-of-experience, and an internship asks for zero, so these sail
+  straight through and every "new grad" marker in the posting rescues them.
+  Two disqualifiers now gate at scan time in `experience_gate.py`
+  (`skipped_enrollment`), and BOTH must also be checked by the reviewer before
+  any submit, because a posting already in the pipeline predates the gate:
+    - **active enrolment required** — "actively pursuing a degree", "must be
+      currently enrolled", "rising junior/senior", "returning to school". The MS
+      was COMPLETED 2026-06-10; he is an alumnus. Postings that accept *either*
+      a student or a recent graduate are fine and are deliberately not blocked.
+    - **graduation window** — "graduating between December 2026 and June 2027"
+      excludes a June 2026 graduate just as firmly as requiring enrolment does.
+      This is the one that got through: the Zip application was submitted with
+      an honest 06/10/2026 graduation date against a window that opened six
+      months later.
+  When a posting is ineligible the verdict is `hold`, never `submit`, and the
+  reason is the JD line itself. Do not try to answer around it: there is no
+  wording of "when do you graduate" that makes an ineligible candidate eligible,
+  and the only answers that would are false ones.
+- **A filled form is volatile: never batch-fill and review later** (added
+  2026-08-26): a filled application lives only as React state in a tab of the
+  shared, persistent Chrome on :9226. It is not saved anywhere and it cannot be
+  reconstructed. Anything that ends that tab throws the work away silently.
+  Two separate causes hit this in one afternoon:
+    - `prime_page.mjs` matched a tab by registrable domain, so each Greenhouse
+      posting hijacked the previous one's tab (fixed — see `posting-identity.mjs`)
+    - with tabs correctly kept, eight of them made Chrome heavy (881MB peak), it
+      stopped answering CDP, and `job-browser.service` was restarted under it.
+      Every filled form in the batch died at once.
+  So the loop is **per posting, end to end**: fill -> readback -> review -> fix
+  -> submit, and only THEN start the next one. One filled form is alive at a
+  time and it is used within minutes of being created. Do not fill a queue and
+  come back to review it; `run_agy_fill.sh` without `--slug` exists for filling
+  a queue only when each posting will be submitted before the next begins.
+  When a tab is lost anyway, the posting simply gets re-filled — the ledger in
+  `output/agy-fill/ledger.json` must have its entry cleared first or the run
+  skips it as already filled.
+- **"Autofill from resume" paints the DOM without telling the form** (added
+  2026-08-26, cost two failed Submit clicks): Greenhouse's and Ashby's
+  autofill-from-resume features write a value into a control's *visible* state
+  without firing the change event the form's own React state listens for. The
+  chip says "Pennsylvania", the radio shows "Yes", every DOM read agrees the
+  field is answered — and the form still rejects Submit with "This field is
+  required" / "Missing entry for required field".
+  Consequences that are now baked into the loop:
+    - **agy's "verified: true" does not settle it.** Re-reading the value it
+      just read is not evidence, because the stale value reads back perfectly.
+      A fix must force a genuine change: CLEAR the control until the chip is
+      gone (or click the other option), then open the dropdown / click the real
+      option, and verify with `aria-invalid` or the disappearance of the error —
+      never with the displayed text.
+    - **`readback.mjs` flags this ahead of the click** for comboboxes: react-select
+      keeps a committed choice in a sibling `.select__single-value` and keeps
+      uncommitted typing in the input itself, so a field with input text and no
+      chip is marked BLOCKER "TYPED BUT NOT COMMITTED". Radios and Ashby's
+      button-groups cannot be told apart this way — for those the form's own
+      post-Submit error is still the detector.
+    - **A fix that toggles a control must never end on a false answer.** Any
+      correction that says "click the other option to force an event" states the
+      required final state explicitly and says to record a failure rather than
+      leave the wrong value standing. Work authorization is the live example.
+- **The planner never reads a DOM, and reads as little of a form as it can**
+  (added 2026-08-26): Claude's context is the scarce resource in this loop, so
+  nothing hands it raw page content — not a snapshot, not HTML, not a full field
+  dump. `readback.mjs` triages the form deterministically first and prints only
+  the controls that need a decision:
+    - `BLOCKER` — required and empty, or named in a visible validation error
+    - `MISMATCH` — the form holds something other than what `profile.json` says
+    - `JUDGE` — `profile.json` has no answer, so agy improvised one
+  Everything that simply matches `profile.json` is collapsed to a count, option
+  lists are capped at 12, and long free text is clipped head-and-tail. The full
+  sheet is always on disk at `Job_applicator/answers/{slug}.readback.json`; read
+  it (or rerun with `--full`) only when a specific verdict actually needs it.
+  agy's prompts forbid opening with a snapshot and forbid full-page snapshots
+  for verification, so its own runs stay cheap too.
+- **Push work to agy wherever judgement is not the bottleneck** (added
+  2026-08-26): browser driving, navigation, form filling, correction-applying,
+  uploads and submits are all agy's. Claude does the reviewing and nothing else.
+  Zero-LLM steps (`scan.mjs`, `jd_extract.py`, `experience_gate.py`,
+  `tailor_resume_local.mjs`, `readback.mjs`) stay zero-LLM — never hand a model
+  a job a script already does deterministically.
+- **Submit without showing me first** (added 2026-08-26, explicit standing
+  decision): Claude's review at step 3 above IS the approval gate. Do not stop
+  to show me a filled form and do not wait for a per-batch yes — I'm working and
+  won't be watching. This deliberately overrides the AGENTS.md "never submit
+  without the user reviewing first" default; it is scoped to the ATS application
+  loop above and to nothing else. It does NOT extend to sending LinkedIn
+  outreach, emails, or anything else that reaches a human directly.
+  The refusals that still stand, and that this does not waive:
+    - `ats_submit.mjs` re-audits the live form and refuses an empty required
+      field, a visible validation error, a generic (untailored) resume, a
+      missing tab, or a slug that already submitted
+    - a CAPTCHA or emailed verification code is never solved or bypassed —
+      the tab is left open and the posting is reported back to me
+    - `verdict: hold` never submits; it stops and tells me why
+    - a fabricated answer is never acceptable to get past a required field.
+      If the answer is not in `cv.md`, `profile.json` or `Job_applicator/data/`,
+      it stays empty and the posting is held.
+
 ## Custom Workflows
 
-- **"run the pipeline" / "start the pipeline"**:
+- **"run the pipeline" / "start the pipeline"** (loop rewritten 2026-08-26 —
+  this is now the ONLY meaning of the phrase; agy orchestrates, Claude plans):
   Whenever the user says "run the pipeline" or "start the pipeline", execute the complete serial pipeline:
   1. **Scan**: Run `run_scan.sh` (or `node scan.mjs` + normalizers/experience gates/relink/dedup) to discover new postings and refresh `data/pipeline.csv`.
   2. **Per-Posting Loop (Serially, one application at a time)**:
-     a. **Fill & Submit**: Fill the job application and submit it.
-     b. **LinkedIn Outreach Drafting**: Draft a targeted LinkedIn outreach message for that company (preferring OSU alumni or relevant hiring managers/recruiters/peers).
-     c. **Contact Deduplication**: If a person from that company has already been contacted (exists in `data/linkedin-outreach-queue.json` as sent/connected), select an alternative contact person from that company who has not been messaged yet.
-     d. **Send Outreach**: Approve and send the LinkedIn outreach message for that application.
+     a. **Fill & Submit** — agy drives the browser, Claude judges the answers,
+        and Claude never opens a page. Per posting:
+        i.   `./Job_applicator/get_jd.sh <slug>` — zero-LLM JD fetch (often
+             already cached by `experience_gate.py` during the scan)
+        ii.  `./Job_applicator/tailor_resume.sh <slug> <swe|ml|robotics>` —
+             near-zero-LLM tailoring, hard-gated by `verify-cv-facts.mjs`
+        iii. `./Job_applicator/agy_step.sh fill <slug>` — agy
+             (gemini-3.7-flash) fills the whole form and CANNOT submit
+        iv.  `node Job_applicator/readback.mjs <slug>` — deterministic triage of
+             the live form; prints only BLOCKER / MISMATCH / JUDGE controls
+        v.   Claude reviews only those, and writes
+             `Job_applicator/answers/{slug}.corrections.json`
+             (`verdict`: submit | fix | hold)
+        vi.  on `fix`: `./Job_applicator/agy_step.sh fix <slug>`, then back to
+             (iv). At most two fix rounds, then `hold`.
+        vii. on `submit`: `./Job_applicator/agy_step.sh submit <slug>` — which
+             routes Greenhouse/Lever/Ashby through `ats_submit.mjs` so the live
+             form is re-audited one last time.
+        Submit without stopping to ask (standing decision above). Never let agy
+        judge whether an answer is right; never let Claude drive the browser.
+     b. **LinkedIn Outreach Drafting**: `Job_applicator/linkedin-draft.sh <slug>
+        <company> <role> <jd_url>`. The drafter works DOWN a preference ladder
+        and must commit: (1) an OSU alumnus on or beside the team that owns the
+        role, (2) any OSU alumnus at the company, (3) a non-alumni in-house
+        recruiter / eng manager / tech lead / team peer who owns the role.
+        Tiers 2 and 3 are real answers. A draft returning `contact_name: null`
+        while listing three usable `alt_targets` is a FAILURE, not caution — it
+        means nobody gets contacted for that posting. Never invent a person, a
+        title, or a profile URL.
+     c. **Contact Deduplication** — mechanical, not advisory. Anyone at that
+        employer already at status sent / approved / connected / pending_approval
+        is off limits. Company matching is on a NORMALISED key, so "Amazon",
+        " Amazon.com Services LLC" and "Amazon Web Services, Inc." are one
+        employer, and a short name never substring-swallows a longer one ("Zip"
+        must not match "Zipline"). Dedup is on the PERSON (profile URL first,
+        name second), because the same human reachable under three employer
+        names is still one human. This was a real incident: Amit Bawaskar was
+        messaged twice, once under each Amazon legal name, *after* the prompt
+        had been told not to. A rule in a prompt is not enforcement.
+     d. **Outreach Review (Claude, before anything sends)**:
+        `node outreach-review.mjs` triages every pending draft and prints only:
+          - `BLOCKER` — no contact, a repeat person, note over 300 chars, an em
+            dash, or text implying the candidate is a current student
+          - `MISMATCH` — the draft's own claims contradict each other (inmail
+            channel without alumni+high referral power, `is_alumni` with no
+            evidence, `referral_power: none`, a bad `contact_type`)
+          - `JUDGE` — nothing mechanical is wrong; Claude decides whether this
+            is the right person and whether the message says only true things
+        Every factual claim in a note must trace to `cv.md`. A note may not
+        imply a shared school, employer or connection that does not exist —
+        on a tier-3 contact the OSU opener is a false claim of a shared tie.
+     e. **Send Outreach**: only after (d) clears it —
+        `Job_applicator/linkedin-approve.sh <slug> approve` then
+        `Job_applicator/linkedin-send.sh <slug>`. The standing "don't show me
+        first" decision applies here too: a draft that passes every mechanical
+        gate AND Claude's read of contact-fit and truthfulness goes out without
+        stopping. What does NOT go out on Claude's say-so, because this reaches
+        a named human and cannot be recalled:
+          - anything still BLOCKER or MISMATCH after a redraft
+          - any note whose factual claims Claude cannot trace to `cv.md`
+          - any contact whose fit Claude is genuinely unsure of
+        Those are collected and raised with the user instead of being sent.
      e. **Iterate**: Proceed to the next application in the queue and repeat.
 
 ## Output Preferences

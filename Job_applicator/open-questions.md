@@ -7,14 +7,24 @@ so it left the field empty and skipped the posting rather than guessing.
 is regenerated. Then run `./apply_answers.py` to push them into
 `profile.json` → `application_questions`, where every future run reads them.
 
-_Regenerate with `./collect_questions.py`. 171 open, 7 answered._
+_Regenerate with `./collect_questions.py`. 199 open, 5 answered._
 
 ---
+
+### cannot read the options for "Phone Device Type*" (the control exposes no readable labels)
+_Asked by 5 posting(s): Chewy, CrowdStrike, General Motors, PayPal, This is CNY_
+
+Answer: _(unanswered)_
 
 ### Twitter URL
 _Asked by 5 posting(s): AHEAD, Belvedere Trading, Humble Robotics, Magnet Forensics, Valkyrie Trading_
 
 Answer: n/a
+
+### Verify New Password*
+_Asked by 5 posting(s): Ciena, Hewlett Packard Enterprise, Hyve Solutions, Johnson   Johnson, Mastercard_
+
+Answer: _(unanswered)_
 
 ### could not reach the applicant wizard; stuck at https://www.amazon.jobs/en/jobs/404
 _Asked by 4 posting(s): AMZN Dev Cntr Poland sp  z o o, Amazon Development Center U S   Inc, Amazon Support Services Pty Ltd, Amazon com Services LLC_
@@ -31,13 +41,18 @@ _Asked by 4 posting(s): CrowdStrike, Mistral, Vercel, WHOOP_
 
 Answer: n/a
 
+### Address Line 2
+_Asked by 3 posting(s): Chewy, General Motors, This is CNY_
+
+Answer: _(unanswered)_
+
 ### amazon.jobs application limit reached for this account
 _Asked by 3 posting(s): Amazon, Amazon Web Services  AWS, Amazon com Services LLC_
 
 Answer: _(unanswered)_
 
-### cannot read the options for "Phone Device Type*" (the control exposes no readable labels)
-_Asked by 3 posting(s): CrowdStrike, General Motors, This is CNY_
+### no option "Aurora's Technological and Research Institute" on "School*
+_Asked by 3 posting(s): Gyde, Scale AI, SpaceX_
 
 Answer: _(unanswered)_
 
@@ -56,8 +71,13 @@ _Asked by 3 posting(s): New Relic, OpenAI, Uniswap_
 
 Answer: _(unanswered)_
 
-### Address Line 2
-_Asked by 2 posting(s): General Motors, This is CNY_
+### would not advance after 3 attempts; the page shows: 0 items selected
+_Asked by 3 posting(s): CrowdStrike, General Motors, PayPal_
+
+Answer: _(unanswered)_
+
+### Yes
+_Asked by 3 posting(s): CrowdStrike, General Motors, PayPal_
 
 Answer: _(unanswered)_
 
@@ -113,21 +133,6 @@ Answer: _(unanswered)_
 
 ### unexpected failure: Cannot read properties of undefined (reading 'push')
 _Asked by 2 posting(s): SimpliSafe, Together AI_
-
-Answer: _(unanswered)_
-
-### Verify New Password*
-_Asked by 2 posting(s): Hyve Solutions, Mastercard_
-
-Answer: _(unanswered)_
-
-### would not advance after 3 attempts; the page shows: 0 items selected
-_Asked by 2 posting(s): CrowdStrike, General Motors_
-
-Answer: _(unanswered)_
-
-### Yes
-_Asked by 2 posting(s): CrowdStrike, General Motors_
 
 Answer: _(unanswered)_
 
@@ -206,6 +211,11 @@ _Asked by 1 posting(s): YouVersion_
 
 Answer: _(unanswered)_
 
+### Account for career8.successfactors.com (company=TEConnect) was created THIS session
+_Asked by 1 posting(s): TE Connectivity_
+
+Answer: _(unanswered)_
+
 ### Additional Information
 _Asked by 1 posting(s): Astronomer_
 
@@ -218,6 +228,11 @@ Answer: _(unanswered)_
 
 ### Additional information or a note you want to share
 _Asked by 1 posting(s): Crusoe_
+
+Answer: _(unanswered)_
+
+### AI Policy for Application*
+_Asked by 1 posting(s): Anthropic_
 
 Answer: _(unanswered)_
 
@@ -256,8 +271,28 @@ _Asked by 1 posting(s): YouVersion_
 
 Answer: _(unanswered)_
 
+### Careers at WGU" would not advance after 3 attempts
+_Asked by 1 posting(s): Western Governors University_
+
+Answer: _(unanswered)_
+
+### Careers" would not advance after 3 attempts
+_Asked by 1 posting(s): Burger King_
+
+Answer: _(unanswered)_
+
+### County
+_Asked by 1 posting(s): Chewy_
+
+Answer: _(unanswered)_
+
 ### Cover Letter (optional, not attached)
 _Asked by 1 posting(s): iTradeNetwork  Inc_
+
+Answer: _(unanswered)_
+
+### created the ms account but could not confirm the email
+_Asked by 1 posting(s): Morgan Stanley_
 
 Answer: _(unanswered)_
 
@@ -270,6 +305,11 @@ Answer: _(unanswered)_
 _Asked by 1 posting(s): Point72_
 
 Answer: Salesforce Engineer
+
+### DEAD POSTING - Saketh confirmed 2026-09-04 the job does not exist at Two Six Technologies. Not a fillable defect; do not retry.
+_Asked by 1 posting(s): Trusted Concepts  Inc_
+
+Answer: _(unanswered)_
 
 ### Describe a model that failed in a way your offline metric didn't catch. How did you find o
 _Asked by 1 posting(s): Avride_
@@ -341,6 +381,16 @@ _Asked by 1 posting(s): Robinhood_
 
 Answer: _(unanswered)_
 
+### How did you first learn to code? *
+_Asked by 1 posting(s): idler_
+
+Answer: _(unanswered)_
+
+### How did you hear about this job?*
+_Asked by 1 posting(s): Yext_
+
+Answer: _(unanswered)_
+
 ### How Did You Hear About Us?
 _Asked by 1 posting(s): Wpromote_
 
@@ -378,6 +428,11 @@ Answer: _(unanswered)_
 
 ### I have a preferred name
 _Asked by 1 posting(s): This is CNY_
+
+Answer: _(unanswered)_
+
+### If 'Other' selected for School Name, please indicate here
+_Asked by 1 posting(s): Garner Health_
 
 Answer: _(unanswered)_
 
@@ -466,8 +521,23 @@ _Asked by 1 posting(s): This is CNY_
 
 Answer: _(unanswered)_
 
+### Job posting is closed and no longer accessible. The Workday posting URL https://empower.wd12.myworkdayjobs.com/empower/job/Nationwide-Remote/Software-Engineer_R0059326 returns 'The page you are looking for doesn't exist.'
+_Asked by 1 posting(s): Empower_
+
+Answer: _(unanswered)_
+
+### Job posting is closed/no longer available: boards.greenhouse.io/embed/job_app?token=5220060007 returned Greenhouse 404 ('Sorry, but we can't find that page.') and https://www.esri.com/careers/5220060007 returned HTTP 404 ('We’re sorry! This job is no longer available')
+_Asked by 1 posting(s): Esri_
+
+Answer: _(unanswered)_
+
 ### Mobile Number
 _Asked by 1 posting(s): Amplify_
+
+Answer: _(unanswered)_
+
+### model answered "I have reviewed the privacy policy and consent to the candidate account creation" with [true], which is not one of that control's option labels
+_Asked by 1 posting(s): Ciena_
 
 Answer: _(unanswered)_
 
@@ -493,11 +563,6 @@ Answer: _(unanswered)_
 
 ### no file input on the Ashby application form
 _Asked by 1 posting(s): Greptile_
-
-Answer: _(unanswered)_
-
-### no option "Aurora's Technological and Research Institute" on "School*
-_Asked by 1 posting(s): Gyde_
 
 Answer: _(unanswered)_
 
@@ -528,6 +593,11 @@ Answer: _(unanswered)_
 
 ### no option "Hindi" on "In which language(s) are you fluent (written) other than Eng
 _Asked by 1 posting(s): Point72_
+
+Answer: _(unanswered)_
+
+### no option "I am authorized to work in the country based on a valid work permit, but I will require sponsorship in the future" on "Your authorization to work in the country where you live. Pl
+_Asked by 1 posting(s): Vercel_
 
 Answer: _(unanswered)_
 
@@ -586,6 +656,16 @@ _Asked by 1 posting(s): Celonis_
 
 Answer: _(unanswered)_
 
+### no option "Other" on "How did you hear about this job?*
+_Asked by 1 posting(s): Yext_
+
+Answer: _(unanswered)_
+
+### no option "PA" on "Please select your current state of residence.
+_Asked by 1 posting(s): Inductive Automation_
+
+Answer: _(unanswered)_
+
 ### no option "Philadelphia, Pennsylvania, United States" on "Location
 _Asked by 1 posting(s): Greptile_
 
@@ -616,8 +696,28 @@ _Asked by 1 posting(s): Quora_
 
 Answer: _(unanswered)_
 
+### Please link your best commit/PR on GitHub. *
+_Asked by 1 posting(s): idler_
+
+Answer: _(unanswered)_
+
 ### Please provide additional detail if appropriate.
 _Asked by 1 posting(s): DRW_
+
+Answer: _(unanswered)_
+
+### Please provide your former PayPal manager's name
+_Asked by 1 posting(s): PayPal_
+
+Answer: _(unanswered)_
+
+### Please provide your last PayPal work location
+_Asked by 1 posting(s): PayPal_
+
+Answer: _(unanswered)_
+
+### Please provide your PayPal employee id
+_Asked by 1 posting(s): PayPal_
 
 Answer: _(unanswered)_
 
@@ -626,8 +726,28 @@ _Asked by 1 posting(s): DV Trading LLC_
 
 Answer: _(unanswered)_
 
+### Position has been filled
+_Asked by 1 posting(s): Atos_
+
+Answer: _(unanswered)_
+
+### Posting page shows: "We're sorry… the job you are trying to apply for has been filled." The requisition (CHINUSR30720EXTERNALENUS) is closed/filled; no Apply link or application form is present on the page, only a category browser and Talent Community signup. Nothing to fill or submit.
+_Asked by 1 posting(s): Chewy_
+
+Answer: _(unanswered)_
+
 ### Required Qualifications (first bullet) states: 'Right to work in the U.S. that is not based solely on possession of a student visa or a visa sponsored by a third-party employer.' Candidate's work authorization is F-1 OPT / STEM OPT extension with an EAD
 _Asked by 1 posting(s): Cargill_
+
+Answer: _(unanswered)_
+
+### Resume/CV upload in step 2 (My Experience) failed with HTTP 500 on POST https://baxter.wd1.myworkdayjobs.com/wday/calypso/cxs/common/baxter/attachments on EVERY attempt
+_Asked by 1 posting(s): This is CNY_
+
+Answer: _(unanswered)_
+
+### run exceeded its 1500s deadline
+_Asked by 1 posting(s): Chewy_
 
 Answer: _(unanswered)_
 
@@ -643,6 +763,11 @@ Answer: _(unanswered)_
 
 ### T-MOBILE CAREERS" would not advance after 3 attempts
 _Asked by 1 posting(s): T_
+
+Answer: _(unanswered)_
+
+### Target job URL https://job-boards.greenhouse.io/anthropic/jobs/5412334008 returned HTTP 302 redirecting to https://job-boards.greenhouse.io/anthropic?error=true. No application form exists (#application-form not found); the job posting is closed or no longer accepting applications.
+_Asked by 1 posting(s): Anthropic_
 
 Answer: _(unanswered)_
 
@@ -776,8 +901,18 @@ _Asked by 1 posting(s): DV Trading LLC_
 
 Answer: _(unanswered)_
 
+### What degree are you currently pursuing? *
+_Asked by 1 posting(s): Schonfeld_
+
+Answer: _(unanswered)_
+
 ### What excites you about this Junior Data Scientist role at Wpromote, and why do you feel it
 _Asked by 1 posting(s): Wpromote_
+
+Answer: _(unanswered)_
+
+### What is the most impressive outcome you achieved with a single prompt? *
+_Asked by 1 posting(s): idler_
 
 Answer: _(unanswered)_
 
@@ -846,6 +981,11 @@ _Asked by 1 posting(s): Luma_
 
 Answer: _(unanswered)_
 
+### Why do you want to work at idler? *
+_Asked by 1 posting(s): idler_
+
+Answer: _(unanswered)_
+
 ### Work History 1 (Salesforce Engineer, Oregon State University, 06/2024-02/2026)
 _Asked by 1 posting(s): US Signal_
 
@@ -872,8 +1012,11 @@ Answer: _(unanswered)_
 
 No answer from you fixes these. Listed so nothing is silently dropped.
 
+- [2x] required field Your authorization to work in the country where you live. Please choose the option that describ
+- [2x] filled and clean — review the open tab, then: node ats_submit.mjs job-Scale_AI-Machine_Learning_Research_Scien
 - [2x] clicked Submit but never saw a confirmation: We couldn't submit your application (now at https://jobs.ashbyhq.
 - [2x] filled and clean — review the open tab, then: node ats_submit.mjs job-Allen_Control_Systems-Software_Engineer_
+- [2x] clicked Submit but never saw a confirmation: We couldn't submit your applicationPlease Note: we have set up li
 - [2x] required field Select...I agreeI am not in full agreement with the above (cards[9efe711f-0209-4345-9b42-e88ae6
 - [1x] required field Are you legally authorized to work in the country you are applying to?* (question_30837164003) 
 - [1x] Please select and confirm your graduation date: planned answer "Immediately" matches none of the form's option
@@ -889,7 +1032,6 @@ No answer from you fixes these. Listed so nothing is silently dropped.
 - [1x] Are you open to relocation?: planned answer "Yes" matches none of the form's options [New York, NY | Salt Lake
 - [1x] required field Are you open to relocation? * (question_37105346002) is still empty — the planned value did not
 - [1x] no #application-form at https://www.nuro.ai/careersitem?gh_jid=7896063 — the posting may be closed or the boar
-- [1x] required field Your authorization to work in the country where you live. Please choose the option that describ
 - [1x] the review call failed (see logs/job-Glean-Software_Engineer__Compute_Infrastructure-review.log): Command fail
 - [1x] required field Years of experience GCP/AWS/ or Azure? * (question_8794805005) is still empty — no planned valu
 - [1x] the review call failed (see logs/job-Glean-Software_Engineer__Developer_Productivity-review.log): Command fail
@@ -900,5 +1042,3 @@ No answer from you fixes these. Listed so nothing is silently dropped.
 - [1x] required field What's the most interesting paper, blog post, or documentation you've read in the past month? (
 - [1x] no #application-form at https://app.careerpuck.com/job-board/lyft/job/8678744002?gh_jid=8678744002 — the posti
 - [1x] no #application-form at https://careers.roblox.com/jobs/8080438?gh_jid=8080438 — the posting may be closed or 
-- [1x] required field Full Legal Name in Native Language (e.g. Chinese Characters, Cyrillic, Farsi etc)* (question_12
-- [1x] no #application-form at https://careers.dat.com/jobs/?gh_jid=6099144004 — the posting may be closed or the boa

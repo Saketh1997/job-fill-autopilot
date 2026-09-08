@@ -17,6 +17,7 @@
 // second visit, not a failure. Exit 1 only if the page could not be reached.
 
 import { chromium } from 'playwright';
+import { postingKey, samePosting } from './posting-identity.mjs';
 
 const args = process.argv.slice(2);
 let url = '';
@@ -53,7 +54,8 @@ try {
   if (!ctx) throw new Error('no browser context over CDP');
 
   // Reuse a tab already on this portal rather than leaking another one — the
-  // persistent browser is shared, and close_tabs.sh cleans by host.
+  // persistent browser is shared, and close_tabs.sh cleans up only this
+  // posting's own tab (posting-identity.mjs).
   //
   // Match on the registrable domain, NOT the exact host. Portals move you to a
   // different subdomain the moment you sign in — amazon.jobs sends you from
@@ -62,11 +64,41 @@ try {
   // `reused` stayed false, the in-flow guard below (which only runs when a tab
   // was reused) never fired, and a part-filled wizard was navigated away from on
   // 2026-08-09.
+  //
+  // But the registrable domain is too coarse on its own for a board that puts
+  // the posting id in the QUERY. Every embedded Greenhouse form in existence is
+  // job-boards.greenhouse.io/embed/job_app?for={org}&token={id}: same domain,
+  // same path, different posting. Matching on domain therefore found the
+  // PREVIOUS posting's tab, samePath said no (the hosts differ, boards vs
+  // job-boards), the in-flow guard did not fire (/embed/job_app matches none of
+  // its keywords), and goto() navigated a filled form away. On the 2026-08-26
+  // batch that destroyed six filled applications in one run.
+  //
+  // So: a tab that is identifiably a DIFFERENT posting is never a reuse
+  // candidate, whatever its domain. Identity comes from postingKey, which is
+  // strong for greenhouse/ashby/lever (a real posting id) and weak elsewhere
+  // (host+path). Only a strong key can prove two tabs are different postings —
+  // a weak one must not, or the Workday and amazon.jobs subdomain drift this
+  // domain match exists for would start opening a second tab every time.
   const regDomain = (h) => h.split('.').slice(-2).join('.');
   const domain = regDomain(new URL(url).host);
-  let page = ctx.pages().find((p) => {
-    try { return regDomain(new URL(p.url()).host) === domain; } catch { return false; }
-  });
+  const STRONG = /^(greenhouse|ashby|lever):/;
+  const ourKey = postingKey(url);
+  const provablyDifferent = (tabUrl) => {
+    const k = postingKey(tabUrl);
+    return STRONG.test(k) && STRONG.test(ourKey) && k !== ourKey;
+  };
+
+  const pages = ctx.pages();
+  // The same posting, wherever it has wandered to, is always the best tab.
+  let page = pages.find((p) => { try { return samePosting(p.url(), url); } catch { return false; } });
+  if (!page) {
+    page = pages.find((p) => {
+      try {
+        return regDomain(new URL(p.url()).host) === domain && !provablyDifferent(p.url());
+      } catch { return false; }
+    });
+  }
   const reused = Boolean(page);
   if (!page) page = await ctx.newPage();
 

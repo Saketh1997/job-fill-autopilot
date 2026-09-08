@@ -127,6 +127,15 @@ shorten this list.
       verified by the candidate yet
   - submit_application.sh remains the path for re-submitting an already
     filled form; it still requires answers/$SLUG.json to match.
+- **Arbitration agreements are acceptable to acknowledge and accept**
+  (candidate's decision, 2026-08-29). Many employers gate the application on
+  agreeing to a Candidate Arbitration Agreement, and a control whose only
+  option binds the candidate to its terms may be accepted like any other
+  required acknowledgement. This is a standing authorization from the
+  candidate, not something to re-ask per posting. It covers arbitration and
+  privacy-notice acknowledgements ONLY -- it is not a general licence to accept
+  any legal term a form presents, and it never overrides the do-not-submit
+  conditions above.
 - Never fabricate an application to satisfy a request. A false premise
   is reported, not repaired.
 - Never change account settings, never log out of any site.
@@ -231,8 +240,10 @@ across postings and never reorder.
 2. fill     node run_ats_batch.mjs [--days N]    -> each posting filled + verified, tab parked
 3. submit   node ats_submit.mjs <slug>           -> re-audits the LIVE form, then clicks Submit
 4. outreach ./linkedin-draft.sh <slug> <company> <role> <jd_url>
+            ./verify_outreach.py <slug>          -> exit 0 == no incorrect data
             ./linkedin-approve.sh <slug> approve
             ./linkedin-send.sh <slug>            -> connection note to the contact for THAT posting
+            ./auto_outreach.sh                   -> all four, unattended (2026-09-05)
 ```
 
 Stage 4 belongs to the posting that was just submitted in stage 3: draft, get
@@ -250,11 +261,17 @@ does not exist.
   browser.
 - Stage 3 refuses on an empty required field, a validation error, a generic
   resume or a CAPTCHA. A refusal stops that posting; it does not stop the run.
-- Stage 4 cannot send without approval: `linkedin_send.py` refuses any queue
-  entry whose status is not `approved`, and `linkedin-draft.sh` has no
-  send-capable tool at all. The standing submit authorization in Hard rules
-  covers employer application forms, **not** LinkedIn messages — those keep
-  their human approval step.
+- Stage 4 sends unattended as of **2026-09-05**, when Saketh extended the
+  standing authorization to LinkedIn messages: "as long as the outreaches don't
+  have incorrect data, just send the outreaches." The condition is the whole
+  rule, so it is enforced by a script rather than by judgement:
+  **`./verify_outreach.py <slug>` must exit 0 before anything is approved**, and
+  `./auto_outreach.sh` is the driver that does verify -> approve -> send.
+  A DIRTY draft is left `pending_approval` for Saketh; it is never sent.
+  The mechanical safety design is UNCHANGED: `linkedin_send.py` still refuses
+  any status that is not `approved`, `linkedin-draft.sh` still has no
+  send-capable tool, and sends are still serial with each result read before
+  the next. The verifier occupies the approver's seat; it does not remove it.
 - `./collect_questions.py` runs at the end of the whole batch, not per posting.
 - `./run_outreach.sh [--days N]` is stage 4 batched: it drafts for every posting
   whose own `answers/{slug}.drive.json` says it submitted, skips anything already
@@ -331,10 +348,12 @@ needs_review -> pending_approval -> approved -> sent
   message before it is even a candidate — re-run the draft, do not hand-approve
   an empty record.
 - `linkedin_send.py` hard-refuses anything not `approved`, independent of the
-  caller. That gate stays: the standing submit authorization covers employer
-  application forms only, **never** LinkedIn messages.
+  caller. That gate stays as a mechanism; since 2026-09-05 the approval on a
+  factually clean draft is given by `verify_outreach.py` instead of by a human.
 - Send **serially**, one slug at a time, checking each JSON result before the
-  next. Do not loop the whole queue unattended.
+  next. This survives the 2026-09-05 change: a send is one attempt with no
+  retry, so `auto_outreach.sh` stops the whole run on the first unconfirmed
+  send rather than letting failures cascade through the queue.
 
 **Drafting coverage is time-boxed, and this bites.** `run_outreach.sh --days N`
 only drafts for postings that had already submitted when it ran. On 2026-08-20
@@ -394,12 +413,19 @@ its own account and that is a lasting side effect.
 
 ### Eligibility gate
 
-`run_ats_batch.mjs` skips a posting whose JD says the employer will not sponsor,
-when `profile.json` says the candidate needs sponsorship — before the resume and
-the model calls are paid for. The regex requires an explicit negation attached
-to the sponsoring verb, so "we sponsor H-1B" and "sponsorship available" do not
-trip it. On 2026-08-20 this caught GM (x2), ZOLL, RTX, PNC (x3) and Veeva, all
-of which name OPT outright.
+`run_ats_batch.mjs` skips a posting before the resume and the model calls are
+paid for, but **only when the JD rules out OPT/F-1 by name**. Two regexes must
+both match: `SPONSORSHIP_BAR` (an explicit negation attached to the sponsoring
+verb, so "we sponsor H-1B" and "sponsorship available" do not trip it) and
+`STATUS_BAR` (the JD names OPT / CPT / F-1 / practical training). GM, ZOLL, RTX,
+PNC and Veeva all name OPT outright and are still skipped.
+
+**Narrowed 2026-09-05.** The old gate fired on `SPONSORSHIP_BAR` alone, which
+treated "will not sponsor a visa" as "cannot hire Saketh". Those differ: he is
+work-authorized ~3 years with no sponsorship at all, so an employer that merely
+declines to sponsor is a valid target — he answers **No** and applies, per the
+sponsorship rule above. Of 2365 cached JDs, 74 matched the bar but only 21 named
+OPT/F-1; the other 53 were eligible postings being discarded.
 
 ## Three-stage pipeline (n8n)
 
