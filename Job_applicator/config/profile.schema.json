@@ -1,0 +1,135 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "career-ops/profile.schema.json",
+  "title": "Candidate profile",
+  "description": "The structured facts every stage reads. Keys prefixed with _ are notes for a human or a model and are never filled into a form. application_questions is an open map: the pipeline adds a key the first time a portal asks something new.",
+  "type": "object",
+  "required": [
+    "first_name", "last_name", "email", "phone", "address",
+    "education", "resume_path", "work_authorization", "application_questions"
+  ],
+  "properties": {
+    "first_name": { "type": "string", "minLength": 1 },
+    "last_name":  { "type": "string", "minLength": 1 },
+    "legal_name": {
+      "type": "string",
+      "description": "Full legal name when it differs from first + last. Forms that ask for 'full legal name' get this."
+    },
+    "preferred_name": { "type": "string" },
+    "email":      { "type": "string", "format": "email" },
+    "university_email": { "type": "string" },
+    "phone":      { "type": "string", "minLength": 7 },
+
+    "address": {
+      "type": "object",
+      "required": ["city", "state", "zip", "country"],
+      "properties": {
+        "street":  { "type": "string" },
+        "city":    { "type": "string" },
+        "state":   { "type": "string", "description": "Two-letter code" },
+        "state_full": { "type": "string" },
+        "zip":     { "type": "string" },
+        "country": { "type": "string" },
+        "typeahead_city": {
+          "type": "string",
+          "description": "What to TYPE into a city autocomplete, which is often not the mailing city. This is the value that actually resolves to an option."
+        },
+        "typeahead_city_short": { "type": "string" }
+      }
+    },
+
+    "linkedin": { "type": "string" },
+    "github":   { "type": "string" },
+    "website":  { "type": "string" },
+
+    "work_authorization": {
+      "type": "string",
+      "description": "Plain-language status, e.g. 'F-1 OPT with EAD, authorized ~3 years'. Free text: forms phrase this a dozen ways and the model needs the underlying fact, not a checkbox."
+    },
+
+    "education": {
+      "type": "object",
+      "required": ["degree", "school", "graduated"],
+      "properties": {
+        "degree": { "type": "string" },
+        "minor":  { "type": "string" },
+        "school": { "type": "string" },
+        "graduated": { "type": "string", "description": "ISO date" },
+        "started":   { "type": "string", "description": "ISO date" },
+        "GPA": { "type": ["number", "string"] },
+        "undergraduate_GPA": { "type": ["number", "string"] },
+        "high_school": { "type": "string" },
+        "high_school_graduated": { "type": "string" }
+      }
+    },
+
+    "resume_path": {
+      "type": "string",
+      "description": "The generic resume. An absolute path here does not survive a different checkout; lib/identity.mjs re-anchors by basename, but a path relative to the repo root is better."
+    },
+    "documents": {
+      "type": "object",
+      "properties": { "transcript": { "type": "string" } }
+    },
+
+    "salary_expectation": {
+      "type": "object",
+      "required": ["default"],
+      "properties": {
+        "default": { "type": ["number", "string"] },
+        "range_rule": { "type": "string" },
+        "note": { "type": "string" }
+      }
+    },
+
+    "relocation": { "type": "string" },
+    "start_availability": { "type": "string" },
+
+    "how_did_you_hear_about_us": {
+      "type": "object",
+      "properties": {
+        "preference_order": { "type": "array", "items": { "type": "string" } },
+        "rule": { "type": "string" }
+      },
+      "description": "Only answers that are TRUE belong in preference_order. An aspirational list here makes the pipeline assert something false on every form that asks."
+    },
+
+    "veteran_status":     { "type": "string" },
+    "disability_status":  { "type": "string" },
+    "race_ethnicity":     { "type": "string" },
+    "gender":             { "type": "string" },
+    "sexual_orientation": { "type": "string" },
+    "transgender_status": { "type": "string" },
+    "age_bracket":        { "type": "string" },
+
+    "languages": { "type": "array", "items": { "type": "string" } },
+
+    "job_account_email":    { "type": "string" },
+    "job_account_password": {
+      "type": "string",
+      "description": "DEPRECATED here. A password in profile.json ends up in model prompts that include the profile. Move it to login.env (gitignored, 0600)."
+    },
+
+    "application_questions": {
+      "type": "object",
+      "description": "Flat map of question-key -> answer. Keys beginning with _ are notes.",
+      "properties": {
+        "legally_authorized_to_work":    { "type": "string" },
+        "require_sponsorship_now_or_future": { "type": "string" },
+        "require_sponsorship_when_employer_cannot_sponsor": {
+          "type": "string",
+          "description": "The OTHER branch. Both must exist, and something has to choose between them per form -- see the sponsorship check in validate_setup.mjs."
+        },
+        "minimum_annual_salary": { "type": ["number", "string"] },
+        "available_start_date":  { "type": "string" },
+        "graduation_date":       { "type": "string" },
+        "open_to_relocation":    { "type": "string" }
+      }
+    },
+
+    "cached_answers": {
+      "type": "object",
+      "description": "Reusable free-text answers keyed 'global:<q>' or 'job:<q>'. Grown by the pipeline, not by hand."
+    }
+  }
+}

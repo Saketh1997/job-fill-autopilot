@@ -142,6 +142,9 @@ Job_applicator/content-bank.yml
 Job_applicator/answers.json
 Job_applicator/Resume.tex
 Job_applicator/work-eligibility-snapshot.md
+# Standing authorizations are personal and dated, same class as profile.json.
+# config/consent.example.json (all grants off) is what ships.
+Job_applicator/config/consent.json
 
 # Generated per-application output (~85MB, all personal)
 Job_applicator/jd/

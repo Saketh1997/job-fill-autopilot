@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "granted_by": "your name here",
+
+  "_readme": [
+    "Every grant below ships OFF. Turn one on only when you mean it, and put the",
+    "date you decided in granted_on -- the run records that date in its log, which",
+    "is what makes an unattended submit auditable months later.",
+    "",
+    "submit_when_clean is the big one. With it off, the pipeline fills forms and",
+    "stops, and you click Submit yourself. That is the recommended default: some",
+    "ATS terms of service prohibit automated submission, and the decision to",
+    "accept that risk is yours to make deliberately, not to inherit from an",
+    "example file.",
+    "",
+    "Turning submit_when_clean on does NOT mean 'always submit'. The run still",
+    "refuses whenever a value was guessed, a required field is empty, a validation",
+    "error is showing, the generic resume got attached where a tailored one was",
+    "expected, or an account was created this session. Those refusals are the",
+    "point of the pipeline; the grant only removes the per-application prompt."
+  ],
+
+  "grants": {
+    "submit_when_clean":          { "allowed": false, "note": "fill and stop; you press Submit" },
+    "accept_arbitration":         { "allowed": false, "note": "covers arbitration + privacy acknowledgements ONLY" },
+    "create_accounts":            { "allowed": false, "note": "sign up when a portal has no existing account" },
+    "outreach_draft":             { "allowed": false, "note": "write LinkedIn drafts (never sends)" },
+    "outreach_auto_send":         { "allowed": false, "note": "send drafts unattended; highest ban risk, leave off until calibrated" },
+    "attach_resume_to_followups": { "allowed": false },
+    "tailor_resume_with_model":   { "allowed": false, "note": "~$0.02/resume through your own model quota" }
+  }
+}

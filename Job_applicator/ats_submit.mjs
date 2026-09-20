@@ -22,6 +22,9 @@
 //   - a required field is empty, or the form is showing a validation error
 //   - the attached resume is the generic one, not the tailored PDF
 //   - the slug was already submitted
+//   - unattended submission (--yes/--all) is not authorized in
+//     config/consent.json. Absent that grant this script still reviews and
+//     still submits, but only after an interactive y/N. See lib/consent.mjs.
 // --force overrides the audit, never the "already submitted" check.
 //
 // Exit: 0 submitted (or reviewed under --dry-run) · 1 error · 2 declined/blocked.
@@ -34,6 +37,7 @@ import {
   submitAndVerify, writeStatus, appendCacheRun, markApplied, norm, resumeAttached,
 } from './ats_apply_common.mjs';
 import { samePosting } from './posting-identity.mjs';
+import { allows, provenance } from './lib/consent.mjs';
 
 // A required file input is only "already satisfied" when it IS the resume
 // field. Greenhouse's Celonis posting also requires a Cover Letter, and
@@ -81,6 +85,22 @@ for (let i = 0; i < argv.length; i++) {
   else if (a.startsWith('-')) { console.error(`unknown flag: ${a}`); process.exit(1); }
   else opts.slug = a;
 }
+// Unattended submission is a standing authorization, not a flag. Without the
+// grant, --yes and --all degrade to an interactive prompt rather than failing:
+// the review work is still worth doing, it is only the clicking that waits for a
+// human. A fresh checkout therefore fills, reviews and stops.
+const unattended = opts.yes || opts.all;
+if (unattended && !opts.dryRun && !allows('submit_when_clean')) {
+  console.error('─'.repeat(72));
+  console.error('  Unattended submit is NOT authorized on this checkout.');
+  console.error('  config/consent.json does not grant submit_when_clean.');
+  console.error('  Falling back to an interactive prompt for each application.');
+  console.error('  To authorize: run the job-applicator skill, or set');
+  console.error('    grants.submit_when_clean = {"allowed": true, "granted_on": "YYYY-MM-DD"}');
+  console.error('─'.repeat(72));
+  opts.yes = false;
+}
+
 if (!opts.slug && !opts.list && !opts.all) {
   console.error('usage: ats_submit.mjs <slug> [--yes] | --list | --all');
   process.exit(1);
@@ -306,6 +326,9 @@ try {
 
     state.approved_at = new Date().toISOString();
     state.approved_via = opts.yes ? 'ats_submit.mjs --yes' : 'ats_submit.mjs (interactive)';
+    // Which standing authorization this click rests on, so a submit is still
+    // explainable months later without reading CLAUDE.md as it was that day.
+    state.authorized_by = provenance('submit_when_clean');
     state.blocked_on = [];
 
     // The gate may already be showing from an earlier Submit click.

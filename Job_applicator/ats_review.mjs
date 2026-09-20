@@ -50,6 +50,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { BASE, norm, lc } from './ats_apply_common.mjs';
+import { displayName } from './lib/identity.mjs';
 import {
   ANSWER_RULES, runModel, scrapeQuestions, resolveFromProfile,
   loadAnswerCache, saveAnswerCache, cacheStore,
@@ -103,7 +104,7 @@ export async function reviewFilled({
     current_answer: currentOf(f) || null,
   }));
 
-  const prompt = `You are reviewing a job application form for Saketh Metta that has ALREADY been filled in. Every field below is shown with the answer currently sitting in it. Your job is to find the answers that are wrong and to say what they should be instead. Return JSON only.
+  const prompt = `You are reviewing a job application form for ${displayName()} that has ALREADY been filled in. Every field below is shown with the answer currently sitting in it. Your job is to find the answers that are wrong and to say what they should be instead. Return JSON only.
 
 FOR EACH FIELD, DECIDE
 - The current answer is truthful and answers the question that was asked -> leave it alone. Say nothing about it.

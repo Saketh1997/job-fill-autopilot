@@ -2,7 +2,8 @@ import { chromium } from 'playwright';
 import fs from 'node:fs';
 import path from 'node:path';
 
-const BASE = '/home/hunter/projects/career-ops/Job_applicator';
+import { APP as BASE } from './lib/paths.mjs';
+import { legalName } from './lib/identity.mjs';
 const PROFILE = JSON.parse(fs.readFileSync(path.join(BASE, 'profile.json'), 'utf8'));
 
 async function sleep(ms) {
@@ -93,7 +94,7 @@ async function fillSMX(page) {
     } else if (l.includes('salary requirement')) {
       await inp.fill('$160,000');
     } else if (l.includes('enter full legal name')) {
-      await inp.fill('Saketh Srinivasa Rao Metta');
+      await inp.fill(legalName());
     } else if (l.includes('date (mm/dd/yyyy)')) {
       await inp.fill('08/25/2026');
     }
