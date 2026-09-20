@@ -167,6 +167,59 @@ if (!fs.existsSync(FILES.loginEnv)) {
   else ok('accounts', 'login.env present, mode 600');
 }
 
+// ----------------------------------------------------------- 4. model providers
+// There is no API key on this box and none is needed: every model call
+// authenticates through the CLIs' own stored credentials. Two distinct chains,
+// and confusing them is how "the model did nothing" reports start.
+//
+//   claude_retry.sh  MODEL_CHAIN  general calls (questions, review, plans, free text)
+//                                 claude -> agy:sonnet -> agy:gemini-pro
+//   agy_step.sh      AGY_CHAIN    the browser-driving fill step. Stays INSIDE agy
+//                                 on purpose: falling back out to claude would put
+//                                 a different driver on a half-filled form.
+const CLAUDE_BIN = process.env.CLAUDE_BIN || path.join(process.env.HOME || '', '.local/bin/claude');
+const AGY_BIN = process.env.AGY_BIN || path.join(process.env.HOME || '', '.local/bin/agy');
+const MCP_BIN = process.env.PLAYWRIGHT_MCP_BIN
+  || path.join(process.env.HOME || '', '.nvm/versions/node/v20.20.2/bin/playwright-mcp');
+
+if (fs.existsSync(CLAUDE_BIN)) ok('models', `claude CLI: ${CLAUDE_BIN}`);
+else fail('models', `no claude CLI at ${CLAUDE_BIN}`,
+  'set CLAUDE_BIN, or install it — it is the first link in MODEL_CHAIN');
+
+if (fs.existsSync(AGY_BIN)) {
+  ok('models', `agy (Antigravity CLI): ${AGY_BIN}`);
+} else {
+  // Not merely a fallback: agy_step.sh drives the fill, so losing it costs the
+  // whole fill stage, not just resilience when claude's quota is spent.
+  fail('models', `no agy at ${AGY_BIN}`,
+    'agy is the quota fallback AND the model that drives the fill step (agy_step.sh). '
+    + 'Install Antigravity CLI and run `agy mcp list` to confirm the playwright server is registered');
+}
+
+if (fs.existsSync(MCP_BIN)) {
+  ok('models', 'playwright-mcp present');
+} else {
+  fail('models', `no playwright-mcp at ${MCP_BIN}`,
+    'npm i -g @playwright/mcp on the pinned Node; ats_common.py invokes it by absolute path and never falls back to PATH');
+}
+
+// Exhaustion is sticky on purpose: without it all 18 postings in a batch each
+// re-pay the same failure. Stale entries are harmless, so only report live ones.
+const quotaFile = process.env.QUOTA_STATE_FILE || path.join(process.env.HOME || '', '.career-ops/quota.state');
+if (fs.existsSync(quotaFile)) {
+  const now = Math.floor(Date.now() / 1000);
+  const cooling = fs.readFileSync(quotaFile, 'utf8').split('\n')
+    .map((l) => l.trim()).filter(Boolean)
+    .map((l) => { const i = l.lastIndexOf('='); return [l.slice(0, i), Number(l.slice(i + 1))]; })
+    .filter(([, until]) => Number.isFinite(until) && until > now);
+  if (cooling.length) {
+    warn('models', `provider(s) in quota cooldown: ${cooling.map(([p, u]) => `${p} until ${new Date(u * 1000).toISOString().slice(0, 16).replace('T', ' ')}`).join(', ')}`,
+      `they are skipped until then; clear by hand with _cr_clear_quota, or rm ${quotaFile}`);
+  } else {
+    ok('models', 'no provider in quota cooldown');
+  }
+}
+
 // ------------------------------------------------------------------ 4. machine
 const missingDirs = Object.entries(DIRS).filter(([, d]) => !fs.existsSync(d)).map(([k]) => k);
 if (missingDirs.length) {

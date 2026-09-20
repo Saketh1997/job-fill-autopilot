@@ -33,6 +33,33 @@ portal session the pipeline has lives in it.
 Do not try to log in on their behalf. Do not ask them for portal passwords in
 chat; those go in `Job_applicator/login.env` (mode 0600), which they write.
 
+## Phase 0b — the model providers
+
+There is no API key and none is needed: the model calls authenticate through the
+CLIs' own stored credentials. Two binaries must exist, and `validate_setup.mjs`
+checks both:
+
+- **`claude`** (`~/.local/bin/claude`) — first link in the general chain.
+- **`agy`** (Antigravity CLI, `~/.local/bin/agy`) — **not optional.** It is the
+  quota fallback *and* the model that drives the fill step, so without it the
+  person loses stage 3 entirely, not just resilience.
+- **`playwright-mcp`**, installed globally on the pinned Node. `ats_common.py`
+  invokes it by absolute path and never falls back to `PATH`.
+
+Tell the person there are two chains and they are not the same: `MODEL_CHAIN` in
+`claude_retry.sh` for general calls, and `AGY_CHAIN` in `agy_step.sh` for the
+fill. The fill chain stays inside agy deliberately — falling back out to claude
+mid-fill would put a different driver on a half-filled form.
+
+Have them run `agy mcp list` and confirm the playwright server is registered.
+agy keeps MCP servers in its **own global config**, separate from `.mcp.json`,
+and under agy the tools are named `browser_*` rather than
+`mcp__playwright__browser_*`.
+
+If a run later reports "the model did nothing", check
+`~/.career-ops/quota.state` first: a spent provider is recorded with the epoch it
+returns and is skipped until then. `validate_setup.mjs` reports live cooldowns.
+
 ## Phase 1 — bootstrap the profile from documents
 
 Do **not** interview from a blank page. `profile.json` has 40 top-level keys and

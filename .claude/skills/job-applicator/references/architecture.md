@@ -6,7 +6,7 @@ Five stages. "Run the pipeline" means all five.
 | --- | --- | --- | --- | --- |
 | 1 | Scan | `run_scan.sh` → `scan.mjs` | none | 60 provider modules → rows in `data/pipeline.csv`. The only stage that adds work. Cron-safe. |
 | 2 | Tailor | `tailor_resume.sh` | ~1/posting | JD + `content-bank.yml` → `resumes/{slug}.pdf`. `tailor_resume_local.mjs` does it with none. |
-| 3 | Fill | `run_ats_batch.mjs` | 1–2/posting | Per-ATS driver fills the form, reads every field back off the live page, leaves the tab open. Never clicks Submit. |
+| 3 | Fill | `run_ats_batch.mjs`, or `agy_step.sh` via `run_agy_fill.sh` | 1–2/posting | Per-ATS driver fills the form, reads every field back off the live page, leaves the tab open. Never clicks Submit. |
 | 4 | Submit | `ats_submit.mjs` | none | The only thing in the repo that clicks Submit. Re-audits the live page first. |
 | 5 | Outreach | `run_outreach.sh` → `linkedin_send.py` | 1/contact | Finds a contact, drafts, verifies, sends. |
 
@@ -46,6 +46,21 @@ can resume a *different* employer's wizard. One Workday posting at a time.
 | `Job_applicator/validate_setup.mjs` | Readiness check. Run it before any unattended batch. |
 | `tools/audit_portability.mjs` | What still hardcodes a path, a person or this machine. |
 | `setup/install_browser_stack.sh` | The three systemd user units. |
+
+## Model providers
+
+Two chains, not one:
+
+- `MODEL_CHAIN` (`claude_retry.sh`) — general calls: the question pass, the
+  review pass, `make_plan.py`, free text. Default
+  `claude, agy:claude-sonnet-4-6, agy:gemini-3.1-pro-high`.
+- `AGY_CHAIN` (`agy_step.sh`) — the browser-driving fill. Default
+  `agy:gemini-3.7-flash-high, agy:gemini-3.6-flash-high, agy:claude-sonnet-4-6`.
+  It stays inside agy on purpose: falling back out to claude mid-fill would put a
+  different driver on a half-filled form.
+
+`agy` is required, not a nicety — it drives the fill. A spent quota is sticky,
+recorded in `~/.career-ops/quota.state` with the epoch the provider returns.
 
 ## State
 

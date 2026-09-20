@@ -31,6 +31,7 @@ To date it has submitted **982 applications to 537 companies**, from a tracker o
   - [validate_setup.mjs](#validate_setupmjs)
   - [tools/audit_portability.mjs](#toolsaudit_portabilitymjs)
   - [setup/install_browser_stack.sh](#setupinstall_browser_stacksh)
+- [Model providers](#model-providers)
 - [The `job-applicator` skill](#the-job-applicator-skill)
 - [State and artefacts](#state-and-artefacts)
 - [Known gaps](#known-gaps)
@@ -321,6 +322,75 @@ Each constraint below cost a failed run before it was settled:
 
 **Back up the Chrome profile directory.** Every portal session the pipeline has —
 LinkedIn, the job boards, every ATS account — lives in it.
+
+---
+
+## Model providers
+
+**There is no API key on this box and none is needed.** Every model call
+authenticates through the CLIs' own stored credentials. Two binaries are
+required:
+
+| Binary | Default path | Why it is required |
+| --- | --- | --- |
+| `claude` | `~/.local/bin/claude` | First link in the general chain |
+| `agy` (Antigravity CLI) | `~/.local/bin/agy` | The quota fallback **and** the model that drives the fill step |
+| `playwright-mcp` | `~/.nvm/versions/node/v20.20.2/bin/playwright-mcp` | Installed globally on the pinned Node. `ats_common.py` invokes it by absolute path and never falls back to `PATH`. |
+
+`agy` is not optional and it is not merely resilience. Losing it costs the whole
+fill stage, not just the ability to survive a spent claude quota.
+
+### Two chains, and they are not the same
+
+Confusing them is how "the model did nothing" reports start.
+
+| Chain | Set in | Default | Used for |
+| --- | --- | --- | --- |
+| `MODEL_CHAIN` | `claude_retry.sh` | `claude, agy:claude-sonnet-4-6, agy:gemini-3.1-pro-high` | General calls — the question pass, the review pass, `make_plan.py`, free text |
+| `AGY_CHAIN` | `agy_step.sh` | `agy:gemini-3.7-flash-high, agy:gemini-3.6-flash-high, agy:claude-sonnet-4-6` | The browser-driving fill step |
+
+The fill chain stays **inside agy on purpose**: falling back out to claude
+mid-fill would put a different driver on a half-filled form. Every model call in
+the pipeline otherwise routes through `run_claude` in `claude_retry.sh`; shell
+stages source it, and `cli_model.mjs`, `ats_questions.mjs`, `amazon_apply.mjs`
+and `make_plan.py` shell into it.
+
+### Quota handling
+
+A **spent subscription quota** switches providers — in the logs that is
+`You've hit your session limit`, or a 429 quoting a reset of ≥5 minutes. A
+**short 429** ("reset after 3s") is a blip: same provider, same backoff.
+
+Exhaustion is **sticky**. The spent provider goes into
+`~/.career-ops/quota.state` with the epoch it returns, and every later call in
+the batch skips it. Without that, all 18 postings in a batch each re-pay the
+same failure. `validate_setup.mjs` reports any provider currently in cooldown
+and ignores stale entries. Clear by hand with `_cr_clear_quota [entry]`, or
+delete the file.
+
+Which provider answered a given run: grep the log for `AGY:`, `QUOTA:`,
+`SKIP:`, `FALLBACK:`.
+
+### Knobs
+
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `MODEL_CHAIN` | see above | `MODEL_CHAIN=claude` restores single-provider behaviour |
+| `AGY_FILL_MODEL` | `gemini-3.7-flash-high` | The model that drives the fill |
+| `AGY_SONNET_MODEL` / `AGY_GEMINI_MODEL` | `claude-sonnet-4-6` / `gemini-3.1-pro-high` | `agy models` lists them |
+| `AGY_PRINT_TIMEOUT` | `90m` | agy's print mode defaults to 5m, which is nothing next to a 150-turn Workday drive |
+| `QUOTA_STATE_FILE` | `~/.career-ops/quota.state` | |
+| `CLAUDE_BIN` / `AGY_BIN` / `PLAYWRIGHT_MCP_BIN` | as above | |
+| `PLAN_MODEL` / `FREETEXT_MODEL` | `claude-sonnet-5` | `make_plan.py`, `map_fields.mjs` |
+
+Run with `ANTHROPIC_BASE_URL=https://api.anthropic.com` and **no**
+`ANTHROPIC_AUTH_TOKEN`. `claude_retry.sh` deliberately withholds the old
+OmniRoute token, which no longer resolves.
+
+**MCP registration differs per CLI.** `agy` keeps MCP servers in its own global
+config, so `claude_retry.sh` registers the CDP-attached playwright server there
+separately from `../.mcp.json`. Check with `agy mcp list`. Under agy the tools
+are named `browser_*`, not `mcp__playwright__browser_*`.
 
 ---
 

@@ -67,6 +67,14 @@ export CDP_ENDPOINT=http://localhost:9226
 back off the live page, which beats your reading of a screenshot and costs a
 fraction as much.
 
+**`agy` is required, not a fallback nicety.** The Antigravity CLI is both the
+quota fallback and the model that drives the fill step (`agy_step.sh`), so a
+missing `agy` costs stage 3 entirely. Two chains, not one: `MODEL_CHAIN` in
+`claude_retry.sh` for general calls, `AGY_CHAIN` in `agy_step.sh` for the fill,
+which stays inside agy on purpose. A "the model did nothing" report is usually a
+sticky quota entry in `~/.career-ops/quota.state`; `validate_setup.mjs` reports
+live cooldowns.
+
 ## Reference
 
 | File | When |
