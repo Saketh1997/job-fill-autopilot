@@ -40,6 +40,7 @@ import { chromium } from 'playwright';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
+import { displayName } from './lib/identity.mjs';
 
 const BASE = path.dirname(new URL(import.meta.url).pathname);
 const ROOT = path.resolve(BASE, '..');
@@ -1080,7 +1081,7 @@ async function askModel(fields, sectionHtml = '') {
   const safeProfile = JSON.parse(JSON.stringify(profile));
   for (const k of Object.keys(safeProfile)) if (/password|secret|token/i.test(k)) delete safeProfile[k];
 
-  const prompt = `You are answering the "Job-specific questions" step of an Amazon job application for Saketh Metta. You are given the section's real HTML as rendered, a parsed list of its controls, and the candidate's own files. Return JSON only.
+  const prompt = `You are answering the "Job-specific questions" step of an Amazon job application for ${displayName()}. You are given the section's real HTML as rendered, a parsed list of its controls, and the candidate's own files. Return JSON only.
 
 RULES
 - Answer ONLY from the sources below. Never invent an experience, a metric, an employer or a project.

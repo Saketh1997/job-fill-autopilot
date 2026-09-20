@@ -254,13 +254,28 @@ cached `jobspy_jobs.csv`).
 the same CDP-attached server there. Check with `agy mcp list`. Under agy the tools are
 named `browser_*`, not `mcp__playwright__browser_*`.
 
-### 2.4 Git is broken
+### 2.4 Git — repaired (verified 2026-09-20)
 
-`git log` and `git status` fail: **every `.git/refs/**` ref is zero-length** from the
-NFS recovery. `git branch --show-current` returns
-`fatal: failed to resolve HEAD as a valid ref`. The working tree is intact and correct.
-History is unreachable and **still not salvaged**. Do not rely on git for anything here;
-do not try to "fix" it by re-initialising, which would destroy the object store.
+**This section used to say git was broken. It is not, any more.** `git status`,
+`git log` and `git branch --show-current` all work; the checkout is on `main`.
+Whatever repaired the zero-length `.git/refs/**` was not recorded here, but the
+result is verified. Use git normally.
+
+What the NFS recovery did leave broken, and what is *still* broken:
+
+- **The career-ops skill router is empty.** `.agents/skills/career-ops/SKILL.md`
+  and `.claude/skills/career-ops/SKILL.md` are both committed as zero-byte files,
+  and the `.opencode/`, `.qwen/` and `.grok/` copies that should symlink to the
+  canonical one are missing entirely.
+- `node test-all.mjs` therefore fails 21 checks on a clean tree. That is the
+  baseline: measure against 21, not against zero, before blaming a change.
+- **Do not write your own content into either SKILL.md.** `test-all.mjs` requires
+  the `.claude/` copy to be byte-identical to the `.agents/` canonical, so an
+  edit to one alone adds two more failures. Restoring the router means rebuilding
+  its mode registrations (latex, email, titles, offer-prep, the Codex guidance,
+  the output-language rule, and the `_profile` → `_custom` → mode load order) in
+  the canonical file and re-linking the four copies. Pipeline skills that are not
+  the router live under their own name — `job-applicator`.
 
 ### 2.5 The recovery damage checklist (2026-08-20)
 

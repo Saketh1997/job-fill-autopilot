@@ -26,6 +26,7 @@
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
+import { displayName } from './lib/identity.mjs';
 import {
   BASE, norm, lc, fileHasBytes, sameValue, matchSelfId as matchSelfIdLabel,
   openMenuOptions,
@@ -691,7 +692,7 @@ export function askModel({ fields, slug, jdPath, profile, state, log }) {
   // what the answers must be consistent with.
   const resumeMd = read(path.join(BASE, 'cv.md'), 12000) || read(path.join(BASE, '..', 'cv.md'), 12000);
 
-  const prompt = `You are answering the remaining questions on a job application for Saketh Metta. You are given the questions parsed off the form, the resume being attached, profile.json, the job description and the candidate's own background files. Return JSON only.
+  const prompt = `You are answering the remaining questions on a job application for ${displayName()}. You are given the questions parsed off the form, the resume being attached, profile.json, the job description and the candidate's own background files. Return JSON only.
 
 RULES
 ${ANSWER_RULES}

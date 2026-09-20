@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "career-ops/consent.schema.json",
+  "title": "Standing authorizations",
+  "description": "What the pipeline is allowed to do without asking. Every grant is per-person, dated, and off by default. Job_applicator/CLAUDE.md currently carries these as prose mixed in with engine policy; this file is the machine-readable half, so a run can check a grant instead of a model having to remember one.",
+  "type": "object",
+  "required": ["version", "grants"],
+  "additionalProperties": false,
+  "properties": {
+    "version": { "const": 1 },
+    "granted_by": {
+      "type": "string",
+      "description": "Who these authorizations belong to. Free text; used in logs."
+    },
+    "grants": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "submit_when_clean":    { "$ref": "#/definitions/grant" },
+        "accept_arbitration":   { "$ref": "#/definitions/grant" },
+        "create_accounts":      { "$ref": "#/definitions/grant" },
+        "outreach_draft":       { "$ref": "#/definitions/grant" },
+        "outreach_auto_send":   { "$ref": "#/definitions/grant" },
+        "attach_resume_to_followups": { "$ref": "#/definitions/grant" },
+        "tailor_resume_with_model":   { "$ref": "#/definitions/grant" }
+      }
+    }
+  },
+  "definitions": {
+    "grant": {
+      "type": "object",
+      "required": ["allowed"],
+      "additionalProperties": false,
+      "properties": {
+        "allowed": { "type": "boolean" },
+        "granted_on": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+          "description": "ISO date the person said yes. Required when allowed is true."
+        },
+        "note": { "type": "string" }
+      },
+      "if":   { "properties": { "allowed": { "const": true } } },
+      "then": { "required": ["allowed", "granted_on"] }
+    }
+  }
+}
