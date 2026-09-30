@@ -1,0 +1,2094 @@
+# Portal Scanner Configuration
+# Target level: New Grad / early career
+# Last updated: April 2026
+
+# -- Scan options --
+scan_options:
+  posted_within_hours: 24   # Only surface jobs posted within this window
+                             # Scan mode appends "after:YYYY-MM-DD" to WebSearch queries
+                             # and discards any result whose posting date is older than this threshold.
+                             # Set to null to disable the filter and return all results.
+
+# -- Candidate profile --
+candidate:
+  level: "Intern-New Grad"
+  primary:
+    - "AI Engineer"
+    - "ML Engineer"
+    - "Data Scientist"
+    - "ML Infrastructure Engineer"
+    - "Data Engineer"
+    - "Research Engineer (DB/Systems)"
+    - "DevOps/Platform Engineer"
+    - "Robotics Software Engineer"
+    - "Embedded/Firmware Engineer"
+  archetypes:
+    - name: "AI/ML Engineer"
+      level: "Intern-New Grad"
+      fit: "primary"
+    - name: "Data Scientist"
+      level: "Intern-New Grad"
+      fit: "primary"
+    - name: "Data Engineer"
+      level: "Intern-New Grad"
+      fit: "primary"
+    - name: "ML Infrastructure Engineer"
+      level: "Intern-New Grad"
+      fit: "primary"
+    - name: "Research Engineer (DB/Systems)"
+      level: "Intern-New Grad"
+      fit: "secondary"
+    - name: "DevOps/Platform Engineer"
+      level: "Intern-New Grad"
+      fit: "secondary"
+    - name: "Robotics Software Engineer"
+      level: "Intern-New Grad"
+      fit: "secondary"
+    - name: "Research Scientist"
+      level: "Intern-New Grad"
+      fit: "adjacent"
+    - name: "Embedded/Firmware Engineer"
+      level: "Intern-New Grad"
+      fit: "adjacent"
+
+# -- Title filter --
+# At least 1 positive must match AND 0 negatives must match (case-insensitive).
+
+title_filter:
+  positive:
+    # -- AI/ML core --
+    - "AI Engineer"
+    - "ML Engineer"
+    - "Machine Learning Engineer"
+    - "Applied AI"
+    - "Applied ML"
+    - "Applied Scientist"
+    - "Research Engineer"
+    # "Research Scientist" removed 2026-09-22: PhD-track; queue_gate.py rejects it
+    - "LLM Engineer"
+    - "LLMOps"
+    - "MLOps"
+    - "ML Infrastructure"
+    - "AI Infrastructure"
+    - "Model Engineer"
+    - "NLP Engineer"
+    - "Computer Vision Engineer"
+    - "Deep Learning Engineer"
+    - "Generative AI"
+    - "GenAI"
+    # -- Data --
+    - "Data Engineer"
+    - "Data Scientist"
+    - "Data Platform"
+    - "Analytics Engineer"
+    # -- ML Systems / Platform / Infra (ML-infra archetype) --
+    - "Platform Engineer"
+    - "Infrastructure Engineer"
+    - "Kubernetes"
+    - "Backend Engineer"
+    - "Systems Engineer"
+    - "Database Engineer"
+    # added 2026-09-19 for the database companies below
+    - "Database"
+    - "PostgreSQL"
+    - "Postgres"
+    - "Query Engine"
+    - "Query Processing"
+    - "Storage Engineer"
+    - "Distributed Systems"
+    # -- Robotics (adjacent) --
+    - "Robotics Engineer"
+    - "Robotics Software"
+    - "ROS"
+    - "Autonomous"
+    # -- Generic SWE (added 2026-08-05) --
+    # New-grad boards (JobRight, Indeed) title most roles plainly "Software
+    # Engineer", so without these the whole general-SWE new-grad market was
+    # invisible: 788 of 798 rows in the JobRight SWE repo failed for having no
+    # positive keyword. These three are broad on purpose — the stack filtering
+    # for them happens in content_filter.by_title_keyword below, against the JD
+    # text, because a title alone cannot tell an ML-adjacent "Software Engineer"
+    # from an iOS one.
+    - "Software Engineer"
+    - "Software Developer"
+    - "Software Development Engineer"
+    # Added 2026-09-24: AI labs and infra startups (Gimlet Labs, Anthropic,
+    # Nous...) title most engineering roles "Member of Technical Staff".
+    # queue_gate already exempts it from the "staff" reject; the lane gate
+    # still checks the JD, so off-lane MTS roles are filtered there.
+    - "Member of Technical Staff"
+    - "Technical Staff"
+  negative:
+    # Exclude stacks with no profile overlap
+    - ".NET"
+    - "Java "
+    - "iOS"
+    - "Android"
+    - "PHP"
+    - "Ruby"
+    - "FPGA"
+    - "ASIC"
+    - "Blockchain"
+    - "Web3"
+    - "Crypto"
+    - "Salesforce Admin"
+    - "SAP "
+    - "Oracle EBS"
+    - "Mainframe"
+    - "COBOL"
+    # Bare, not "Frontend Engineer": with generic SWE titles allowed, the
+    # variants "Software Engineer, Frontend" and "Frontend Software Engineer"
+    # slipped past the two-word form (observed 2026-08-05 — Glean, TikTok, Hadrian).
+    - "Frontend"
+    - "Front End"
+    - "Front-End"
+    - "UI Engineer"
+    - "QA Engineer"
+    # -- Off-stack titles surfaced by the generic "Software Engineer" positives
+    #    (added 2026-08-05). Titles only; the JD-level check is in content_filter.
+    - "Mobile"
+    - "Swift"
+    - "Kotlin"
+    - "React Native"
+    - "Flutter"
+    - "Xamarin"
+    - "Objective-C"
+    - "Salesforce"
+    - "ServiceNow"
+    - "SharePoint"
+    - "WordPress"
+    - "Drupal"
+    - "Quality Assurance"
+    - "Test Engineer"
+    - "Support Engineer"
+    - "Field Engineer"
+    - "Sales Development"
+    - "Technical Recruiter"
+    - "Account Executive"
+    - "Sales Engineer"   # remove if open to SE roles
+    # -- Off-archetype infra/hardware (cut to reduce scan noise; re-add if targeting) --
+    - "DevOps"
+    - "Site Reliability"
+    - "SRE"
+    - "Embedded"
+    - "Firmware"
+    # -- Seniority exclusions (intern/new-grad target; keeps zero-token scan.mjs
+    #    from flooding the pipeline with senior roles — added 2026-07-05) --
+    - "Senior"
+    - "Sr."
+    - "Sr "
+    - "Staff"
+    - "Principal"
+    - "Lead"
+    - "Head of"
+    - "Director"
+    - "Manager"
+    - "Management"
+    - "Distinguished"
+    - "Architect"
+    - "Evangelist"
+    - "Vice President"
+    - "Chief "
+    # -- Clearance / citizenship, title-level (for candidates without a clearance).
+    #    The JD-level rule already exists; these catch the aggregator feeds
+    #    (JobSpy, JobRight) that state it in the title, e.g.
+    #    "Data Scientist - Multiple Levels (TS/SCI with Poly Required)".
+    - "TS/SCI"
+    - "Clearance"
+    - "Polygraph"
+    - "US Citizen"
+    - "U.S. Citizen"
+  seniority_boost:
+    # These add relevance score but are not required — new grad roles often lack these prefixes
+    - "New Grad"
+    - "Entry Level"
+    - "University Grad"
+    - "Junior"           # moved from negative — valid at new grad level
+    # "Intern" removed 2026-09-22: queue_gate.py rejects intern titles
+    - "Associate"
+
+# -- Content filter --
+# Runs against the JOB DESCRIPTION, so it can separate same-titled roles with
+# different stacks. Added 2026-08-05 together with the generic "Software
+# Engineer" title positives: a plain "Software Engineer" title says nothing
+# about the stack, and an iOS or Android role posted under that title is off
+# archetype.
+#
+# `by_title_keyword` scopes a rule to jobs whose title matched a specific
+# `title_filter.positive` keyword — so this strictness applies ONLY to the three
+# generic SWE titles. An "ML Engineer" or "Data Engineer" title never gets here.
+#
+# Semantics (scan.mjs buildContentFilter, mirrored in scan_common.py):
+#   - no description available -> PASS (never penalize missing provider data)
+#   - any `negative` term present -> reject
+#   - otherwise at least one `positive` term must be present
+#
+# Negatives are deliberately TOOL names (xcode, cocoapods, jetpack compose)
+# rather than the bare words "ios"/"android": most backend JDs mention "our iOS
+# and Android apps" in passing, and blocking on that would drop real matches.
+
+content_filter:
+  by_title_keyword:
+    "Software Engineer": &generic_swe_stack
+      negative:
+        # Mobile-only stacks
+        - "xcode"
+        - "cocoapods"
+        - "swiftui"
+        - "objective-c"
+        - "swift developer"
+        - "ios developer"
+        - "ios engineer"
+        - "ios application"
+        - "android studio"
+        - "android developer"
+        - "android engineer"
+        - "jetpack compose"
+        - "react native"
+        - "flutter"
+        - "xamarin"
+        # NOTE: bare "kotlin" and "swift" are deliberately absent. Polyglot
+        # employers (DoorDash, Robinhood, Amazon) list every language they use
+        # in one JD, so those two words dropped real backend roles. The tokens
+        # above name mobile TOOLING, which a backend JD has no reason to carry.
+        # Enterprise / low-code / legacy stacks with no profile overlap
+        - "salesforce"
+        # Phrase-scoped, not bare: SharePoint and ServiceNow show up in plenty
+        # of JDs as internal tooling or a benefits-portal mention. Bare tokens
+        # dropped an Esri C++ maps role and RTX/Collins engineering roles for
+        # words that had nothing to do with the stack.
+        - "servicenow developer"
+        - "servicenow platform"
+        - "sharepoint developer"
+        - "sharepoint administrator"
+        - "wordpress developer"
+        - "drupal developer"
+        - "cobol"
+        - "mainframe"
+        - "abap"
+        - "visual basic"
+        - "vb.net"
+        - "powerbuilder"
+      positive:
+        # At least one has to appear, so a "Software Engineer" posting that is
+        # really a non-technical or wrong-domain role does not slip through.
+        - "python"
+        - "machine learning"
+        - "deep learning"
+        - "artificial intelligence"
+        - "data pipeline"
+        - "data engineering"
+        - "backend"
+        - "back-end"
+        - "distributed systems"
+        - "microservices"
+        - "kubernetes"
+        - "docker"
+        - "aws"
+        - "gcp"
+        - "azure"
+        - "sql"
+        - "postgres"
+        - "spark"
+        - "kafka"
+        - "c++"
+        - "golang"
+        - "rust"
+        - "api"
+        # Generic engineering signals, so a real but vaguely-written SWE posting
+        # is not dropped for lacking a named stack. Anything with none of these
+        # is not a software role in the first place.
+        - "algorithms"
+        - "data structures"
+        - "software development"
+        - "linux"
+        - "git"
+        - "ci/cd"
+        - "database"
+    "Software Developer": *generic_swe_stack
+    "Software Development Engineer": *generic_swe_stack
+
+# -- Experience filter --
+# No professional experience yet (new grad). experience_gate.py fetches each
+# new offer's JD and blocks it when the minimum required years exceed this.
+# Offers whose JD states no years requirement (or can't be fetched) pass.
+
+
+# --- queue_gate.py (added 2026-09-22) ---------------------------------------
+# Runs in run_scan.sh after experience_gate.py, so every source (scan.mjs APIs,
+# local parsers, relinks) is gated before anything reaches the fill queue.
+# Why: 1,048 applications had piled up at a few companies (TikTok 118,
+# Anthropic 43) and ~1 in 6 titles were unwinnable (intern, PhD, research
+# scientist, 2027 cohorts). A recruiter sees every application from one
+# candidate on a single ATS profile.
+queue_gate:
+  window_days: 90            # rolling window for the per-company cap
+  cap_large: 3               # max on-lane applications per large company per window
+  cap_startup: 1             # every company not listed under large_companies
+  # Companies already OVER their cap get zero new applications until this many
+  # days after their most recent application (not just until the window rolls).
+  over_cap_cooldown_days: 180
+  # Whole-word, case-insensitive title rejects. Word boundaries keep
+  # "Internal Tools" and "Member of Technical Staff" alive.
+  title_reject:
+    - senior
+    - sr
+    - staff
+    - principal
+    - lead
+    - intern
+    - interns
+    - internship
+    - co-op
+    - research scientist
+    - phd
+    - ui
+    - support
+    - it infrastructure
+    - it support
+    - it controls
+    - mid-level
+    - mid level
+    - network engineer
+    - network infrastructure
+    - data center
+  title_reject_exempt:
+    - member of technical staff
+  # Titles naming a graduation cohort later than this year:
+  # "2027 Start", "Summer 2027", "2027 Grads", "Class of 2027".
+  reject_cohort_years_after: 2026
+  # Core lanes: titles here enter without a JD check.
+  lane_titles:
+    - database
+    - postgres
+    - postgresql
+    - query engine
+    - query processing
+    - storage
+    - data engineer
+    - data platform
+    - data infrastructure
+    - analytics engineer
+    - platform engineer
+    - infrastructure
+    - infra
+    - ml infrastructure
+    - ai infrastructure
+    - mlops
+    - llmops
+    - distributed systems
+  # Every other title (new-grad SWE, MLE, backend, data scientist, research
+  # engineer, robotics...) enters only if its cached JD names at least one
+  # STRONG term and lane_jd_min_hits terms in total. WEAK terms appear in almost
+  # every software JD ("SQL databases", "Linux"), so they only count toward the
+  # total. No JD on disk = not verifiable = dropped.
+  lane_jd_min_hits: 2
+  lane_jd_strong:
+    - postgresql
+    - postgres
+    - kubernetes
+    - k8s
+    - distributed systems
+    - distributed system
+    - database internals
+    - query optimization
+    - query engine
+    - storage engine
+    - data infrastructure
+    - spark
+    - kafka
+    - flink
+    - airflow
+    - ml infrastructure
+    - machine learning infrastructure
+    - model serving
+    - inference
+    - training infrastructure
+    - mlops
+    - cuda
+    - pytorch
+    - tensorflow
+    - jax
+    - large language models
+    - model training
+    - training pipelines
+    - vector database
+  lane_jd_weak:
+    - databases
+    - sql
+    - etl
+    - data pipelines
+    - data pipeline
+    - linux
+    - docker
+    - terraform
+    - observability
+    - prometheus
+    - gpu
+    - llm
+    - llms
+    - embeddings
+    - retrieval
+    - rag
+  # Name variants that are one employer on one ATS.
+  company_aliases:
+    amazon.com services: amazon
+    amazon web services: amazon
+    amazon development center u.s.: amazon
+    aws: amazon
+    bytedance: tiktok
+    tiktok usds: tiktok
+    hud: hud
+  large_companies:
+    - amazon
+    - tiktok
+    - nvidia
+    - microsoft
+    - meta
+    - google
+    - apple
+    - oracle
+    - ibm
+    - adobe
+    - qualcomm
+    - intel
+    - micron
+    - tesla
+    - spacex
+    - general motors
+    - jpmorganchase
+    - databricks
+    - snowflake
+    - palantir
+    - uber
+    - doordash
+    - netflix
+    - spotify
+    - paypal
+    - robinhood
+    - roblox
+    - salesforce
+    - cisco
+    - capital one
+    - booz allen hamilton
+    - cgi
+    - hp
+    - openai
+    - anthropic
+
+experience_filter:
+  max_required_years: 1
+
+# -- Location filter --
+# Block-list only (no allow list) so that empty/ambiguous locations
+# ("2 Locations", "Remote") still pass.
+# Added 2026-07-05 as US-only. Widened 2026-09-22
+# to also admit the Netherlands, Australia, Japan, Austria, Canada and the rest
+# of Europe (UK, DE, FR, IE, CH, ES, PL, Nordics, ...). What stays blocked is
+# everything outside those regions. Watch substrings: "India" would also
+# match "Indiana" and "Mexico" would match "New Mexico", so those are listed
+# by city instead. Non-US applications follow PIPELINE.md §13.3a for work auth.
+
+location_filter:
+  block:
+    - "China"
+    - "Shanghai"
+    - "Beijing"
+    - "Shenzhen"
+    - "Hong Kong"
+    - "Singapore"
+    - "Israel"
+    - "Tel Aviv"
+    - "Korea"
+    - "Seoul"
+    - "Taiwan"
+    - "Taipei"
+    - "Bengaluru"
+    - "Bangalore"
+    - "Karnataka"
+    - "Hyderabad"
+    - "Mumbai"
+    - "Pune"
+    - "Chennai"
+    - "Gurgaon"
+    - "Gurugram"
+    - "Noida"
+    - "New Delhi"
+    - "Philippines"
+    - "Manila"
+    - "Vietnam"
+    - "Ho Chi Minh"
+    - "Malaysia"
+    - "Kuala Lumpur"
+    - "Indonesia"
+    - "Jakarta"
+    - "Thailand"
+    - "Bangkok"
+    - "Dubai"
+    - "United Arab Emirates"
+    - "Saudi"
+    - "Brazil"
+    - "Sao Paulo"
+    - "São Paulo"
+    - "Buenos Aires"
+    - "Argentina"
+    - "Bogota"
+    - "Bogotá"
+    - "Colombia"
+    - "Mexico City"
+    - "Uruguay"
+    - "Montevideo"
+    - "Chile"
+    - "Santiago, CL"
+    - "Peru"
+    - "Lima, "
+    - "Costa Rica"
+    - "South Africa"
+    - "Cape Town"
+    - "Nigeria"
+    - "Kenya"
+    - "Egypt"
+    - "Cairo"
+    - "Pakistan"
+    - "Turkey"
+    - "Istanbul"
+    - "CDMX"
+    - ", BRA"
+    - ", IND"
+    - ", CHN"
+    - ", SGP"
+
+# -- Search queries --
+
+search_queries:
+  # -- AI/ML Engineer --
+  - name: Greenhouse — AI/ML Engineer new grad
+    query: 'site:boards.greenhouse.io OR site:job-boards.greenhouse.io "AI Engineer" OR "ML Engineer" OR "Machine Learning Engineer" "new grad" OR "entry level" OR "university"'
+    enabled: true
+
+  - name: Ashby — AI/ML Engineer new grad
+    query: 'site:jobs.ashbyhq.com "AI Engineer" OR "ML Engineer" OR "Machine Learning Engineer" "new grad" OR "entry level"'
+    enabled: true
+
+  - name: Lever — AI/ML Engineer new grad
+    query: 'site:jobs.lever.co "AI Engineer" OR "ML Engineer" OR "Applied AI" "new grad" OR "entry level" OR "university"'
+    enabled: true
+
+  # -- Research Engineer --
+  - name: Greenhouse — Research Engineer
+    query: 'site:boards.greenhouse.io OR site:job-boards.greenhouse.io "Research Engineer" OR "Applied Scientist" "new grad" OR "entry level"'
+    enabled: true
+
+  - name: Ashby — Research Engineer
+    query: 'site:jobs.ashbyhq.com "Research Engineer" OR "Research Scientist" "new grad" OR "entry level"'
+    enabled: true
+
+  # -- ML Infrastructure / MLOps --
+  - name: Greenhouse — ML Infra / MLOps
+    query: 'site:boards.greenhouse.io OR site:job-boards.greenhouse.io "ML Infrastructure" OR "MLOps" OR "LLMOps" "new grad" OR "entry level"'
+    enabled: true
+
+  - name: Ashby — ML Infra / MLOps
+    query: 'site:jobs.ashbyhq.com "ML Infrastructure" OR "MLOps" OR "AI Infrastructure" "new grad" OR "entry level"'
+    enabled: true
+
+  # -- Data Engineer / Data Scientist --
+  - name: Greenhouse — Data Engineer new grad
+    query: 'site:boards.greenhouse.io OR site:job-boards.greenhouse.io "Data Engineer" OR "Analytics Engineer" "new grad" OR "entry level" OR "university"'
+    enabled: true
+
+  - name: Greenhouse — Data Scientist new grad
+    query: 'site:boards.greenhouse.io OR site:job-boards.greenhouse.io "Data Scientist" "new grad" OR "entry level" OR "university"'
+    enabled: true
+
+  - name: Lever — Data roles new grad
+    query: 'site:jobs.lever.co "Data Engineer" OR "Data Scientist" OR "Analytics Engineer" "new grad" OR "entry level"'
+    enabled: true
+
+  # -- Platform / DevOps / Infra Engineer --
+  - name: Greenhouse — Platform / DevOps new grad
+    query: 'site:boards.greenhouse.io OR site:job-boards.greenhouse.io "Platform Engineer" OR "DevOps Engineer" OR "Infrastructure Engineer" "new grad" OR "entry level"'
+    enabled: true
+
+  - name: Ashby — Platform / SRE new grad
+    query: 'site:jobs.ashbyhq.com "Platform Engineer" OR "SRE" OR "Infrastructure Engineer" "new grad" OR "entry level"'
+    enabled: true
+
+  # -- Database / Systems Research --
+  - name: Greenhouse — Database / Systems Engineer
+    query: 'site:boards.greenhouse.io OR site:job-boards.greenhouse.io "Database Engineer" OR "Systems Engineer" OR "Storage Engineer" "new grad" OR "entry level"'
+    enabled: true
+
+  # -- Robotics --
+  - name: Greenhouse — Robotics Software Engineer
+    query: 'site:boards.greenhouse.io OR site:job-boards.greenhouse.io "Robotics Engineer" OR "Robotics Software" OR "ROS" "new grad" OR "entry level"'
+    enabled: true
+
+  - name: Lever — Robotics new grad
+    query: 'site:jobs.lever.co "Robotics" OR "Autonomous" "Software Engineer" "new grad" OR "entry level"'
+    enabled: true
+
+  # -- Embedded / Firmware (adjacent) --
+  - name: Greenhouse — Embedded / Firmware new grad
+    query: 'site:boards.greenhouse.io OR site:job-boards.greenhouse.io "Embedded Engineer" OR "Firmware Engineer" "new grad" OR "entry level"'
+    enabled: true
+
+  # -- Broad aggregators --
+  - name: Wellfound — AI/ML new grad
+    query: 'site:wellfound.com "AI Engineer" OR "ML Engineer" OR "Machine Learning" "new grad" OR "entry level"'
+    enabled: true
+
+  - name: YC Jobs — AI/ML/Infra new grad
+    query: 'site:workatastartup.com "AI Engineer" OR "ML Engineer" OR "Data Engineer" OR "Platform Engineer" "new grad" OR "entry level"'
+    enabled: true
+
+  - name: HN Who's Hiring — AI/ML/Infra new grad
+    query: 'site:news.ycombinator.com "AI Engineer" OR "ML Engineer" OR "Data Engineer" OR "new grad" remote OR hybrid'
+    enabled: true
+
+  - name: RemoteOK — AI/ML new grad
+    query: 'site:remoteok.com "AI Engineer" OR "ML Engineer" OR "Machine Learning" "new grad" OR "entry level"'
+    enabled: true
+
+  - name: Himalayas — AI/ML/Infra new grad
+    query: 'site:himalayas.app "AI Engineer" OR "ML Engineer" OR "Data Engineer" OR "Platform Engineer" "new grad" OR "entry level"'
+    enabled: true
+
+  # -- LinkedIn --
+  - name: LinkedIn — AI/ML Engineer new grad
+    query: 'site:linkedin.com/jobs/view "AI Engineer" OR "ML Engineer" OR "Machine Learning Engineer" "new grad" OR "entry level" OR "university grad"'
+    enabled: true
+
+  - name: LinkedIn — ML Infrastructure / MLOps new grad
+    query: 'site:linkedin.com/jobs/view "ML Infrastructure" OR "AI Infrastructure" OR "MLOps" OR "LLMOps" "new grad" OR "entry level" OR "university"'
+    enabled: true
+
+  - name: LinkedIn — Data Engineer / Data Scientist new grad
+    query: 'site:linkedin.com/jobs/view "Data Engineer" OR "Data Scientist" OR "Analytics Engineer" "new grad" OR "entry level" OR "university grad"'
+    enabled: true
+
+  - name: LinkedIn — Platform / DevOps / SRE new grad
+    query: 'site:linkedin.com/jobs/view "Platform Engineer" OR "DevOps Engineer" OR "Infrastructure Engineer" OR "SRE" "new grad" OR "entry level"'
+    enabled: true
+
+  - name: LinkedIn — Research Engineer new grad
+    query: 'site:linkedin.com/jobs/view "Research Engineer" OR "Applied Scientist" OR "Research Scientist" "new grad" OR "entry level" OR "university"'
+    enabled: true
+
+  - name: LinkedIn — Robotics / Embedded new grad
+    query: 'site:linkedin.com/jobs/view "Robotics Engineer" OR "Robotics Software" OR "Embedded Engineer" OR "Firmware Engineer" "new grad" OR "entry level"'
+    enabled: true
+
+  - name: LinkedIn — Deep Learning / GPU / CUDA new grad
+    query: 'site:linkedin.com/jobs/view "Deep Learning Engineer" OR "CUDA Engineer" OR "GPU Engineer" OR "Inference Engineer" "new grad" OR "entry level" OR "university grad"'
+    enabled: true
+
+  # -- Visa-sponsorship-explicit queries --
+  # Surface postings that explicitly offer/permit visa sponsorship.
+  - name: LinkedIn — SWE/ML new grad WITH visa sponsorship
+    query: 'site:linkedin.com/jobs/view "Software Engineer" OR "ML Engineer" OR "Data Engineer" "new grad" OR "entry level" "visa sponsorship" OR "will sponsor" OR "sponsorship available"'
+    enabled: true
+
+  - name: Greenhouse — new grad SWE/ML sponsorship available
+    query: 'site:boards.greenhouse.io OR site:job-boards.greenhouse.io "Software Engineer" OR "ML Engineer" OR "Data Engineer" "new grad" OR "entry level" "visa sponsorship" OR "sponsor"'
+    enabled: true
+
+  - name: Ashby — new grad SWE/ML sponsorship available
+    query: 'site:jobs.ashbyhq.com "Software Engineer" OR "ML Engineer" OR "AI Engineer" "new grad" OR "entry level" "visa" OR "sponsor"'
+    enabled: true
+
+  - name: jobright H1B-tracked new grad tech roles
+    query: 'site:github.com jobright-ai Daily-H1B-Jobs OR "New-Grad-Positions" "Software Engineer" OR "ML Engineer" OR "Data Engineer" H1B sponsorship'
+    enabled: true
+
+  - name: Simplify / GitHub new grad lists — H1B sponsoring
+    query: '"New Grad" OR "entry level" "Software Engineer" OR "Machine Learning" "H1B" OR "visa sponsorship" 2026 github.com/SimplifyJobs OR github.com/speedyapply'
+    enabled: true
+
+
+# -- Tracked companies --
+# Companies whose career pages are checked directly.
+
+tracked_companies:
+
+  # -- AI Labs & LLM providers --
+
+  - name: Anthropic
+    careers_url: https://job-boards.greenhouse.io/anthropic
+    api: https://boards-api.greenhouse.io/v1/boards/anthropic/jobs
+    notes: "New grad Research Engineer / ML roles."
+    enabled: true
+
+  - name: OpenAI
+    careers_url: https://openai.com/careers
+    scan_method: websearch
+    scan_query: 'site:openai.com/careers "Research Engineer" OR "ML Engineer" OR "New Grad"'
+    notes: "Research Engineer / Applied AI new grad pipeline."
+    enabled: true
+
+  - name: Cohere
+    careers_url: https://jobs.ashbyhq.com/cohere
+    notes: "LLM provider — ML/Research Engineer new grad roles."
+    enabled: true
+
+  - name: Mistral AI
+    careers_url: https://jobs.lever.co/mistral
+    notes: "Paris. European AI lab — research engineer roles."
+    enabled: true
+
+  - name: Aleph Alpha
+    careers_url: https://jobs.ashbyhq.com/AlephAlpha
+    notes: "Heidelberg DE. Sovereign LLM — ML Engineer roles."
+    enabled: true
+
+  - name: Hugging Face
+    careers_url: https://apply.workable.com/huggingface/
+    scan_method: websearch
+    scan_query: 'site:apply.workable.com/huggingface "ML Engineer" OR "Research Engineer" OR "Data Engineer"'
+    notes: "Open-source ML hub — strong new grad pipeline."
+    enabled: true
+
+  # -- MLOps / AI Observability / LLMOps --
+
+  - name: Arize AI
+    careers_url: https://job-boards.greenhouse.io/arizeai
+    api: https://boards-api.greenhouse.io/v1/boards/arizeai/jobs
+    notes: "LLMOps / AI observability — ML Infra Engineer fit."
+    enabled: true
+
+  - name: Langfuse
+    careers_url: https://langfuse.com/careers
+    scan_method: websearch
+    scan_query: '"langfuse" careers "engineer" "new grad" OR "entry level"'
+    notes: "Berlin. LLMOps observability — small team, founding-style eng roles."
+    enabled: true
+
+  # -- ML Infra / GPU Cloud --
+
+  - name: RunPod
+    careers_url: https://job-boards.greenhouse.io/runpod
+    api: https://boards-api.greenhouse.io/v1/boards/runpod/jobs
+    notes: "GPU cloud — infra/platform eng new grad fit."
+    enabled: true
+
+  # -- Database / Systems (Research Engineer fit) --
+
+  - name: PlanetScale
+    careers_url: https://job-boards.greenhouse.io/planetscale
+    api: https://boards-api.greenhouse.io/v1/boards/planetscale/jobs
+    notes: "Serverless MySQL — DB/Systems Engineer fit."
+    enabled: true
+
+  - name: Supabase
+    careers_url: https://jobs.ashbyhq.com/supabase
+    scan_method: websearch
+    scan_query: 'site:jobs.ashbyhq.com/supabase "Engineer" "new grad" OR "entry level"'
+    notes: "Open-source Firebase/Postgres — backend/infra new grad fit."
+    enabled: true
+
+  - name: Neon
+    careers_url: https://neon.tech/careers
+    scan_method: websearch
+    scan_query: '"neon.tech" OR "neondatabase" careers "engineer"'
+    notes: "Serverless Postgres. DISABLED 2026-09-19: acquired by Databricks, hires through the Databricks board (already scanned). jobs.ashbyhq.com/neon is an unrelated payments company, jobs.lever.co/neon a Brazilian bank."
+    enabled: false
+
+  # -- Data Platform --
+
+  - name: Hightouch
+    careers_url: https://job-boards.greenhouse.io/hightouch
+    api: https://boards-api.greenhouse.io/v1/boards/hightouch/jobs
+    notes: "Data activation — data/analytics engineer fit."
+    enabled: true
+
+  # -- AI Infra / Dev Tools --
+
+  - name: LangChain
+    careers_url: https://jobs.ashbyhq.com/langchain
+    notes: "LangChain/LangSmith — AI infra / ML engineer new grad fit."
+    enabled: true
+
+  - name: Pinecone
+    careers_url: https://jobs.ashbyhq.com/pinecone
+    notes: "Vector database — ML infra / backend eng fit."
+    enabled: true
+
+  - name: Vercel
+    careers_url: https://job-boards.greenhouse.io/vercel
+    api: https://boards-api.greenhouse.io/v1/boards/vercel/jobs
+    notes: "AI SDK / v0.dev — platform/infra new grad fit."
+    enabled: true
+
+  - name: WorkOS
+    careers_url: https://jobs.ashbyhq.com/workos
+    notes: "Developer platform — backend/infra engineer fit."
+    enabled: true
+
+  # -- Robotics / Autonomous Systems --
+
+  - name: Wayve
+    careers_url: https://job-boards.greenhouse.io/wayve
+    api: https://boards-api.greenhouse.io/v1/boards/wayve/jobs
+    notes: "London. Embodied AI / self-driving — robotics software new grad fit."
+    enabled: true
+
+  - name: PhysicsX
+    careers_url: https://job-boards.greenhouse.io/physicsx
+    api: https://boards-api.greenhouse.io/v1/boards/physicsx/jobs
+    notes: "Physics-informed ML — research engineer / ML new grad fit."
+    enabled: true
+
+  - name: Isomorphic Labs
+    careers_url: https://job-boards.greenhouse.io/isomorphiclabs
+    api: https://boards-api.greenhouse.io/v1/boards/isomorphiclabs/jobs
+    notes: "DeepMind spinout — research engineer / ML new grad fit."
+    enabled: true
+
+  # -- Applied AI / Enterprise AI --
+
+  - name: Glean
+    careers_url: https://job-boards.greenhouse.io/gleanwork
+    api: https://boards-api.greenhouse.io/v1/boards/gleanwork/jobs
+    notes: "Enterprise AI search — ML / backend new grad fit."
+    enabled: true
+
+  - name: Perplexity
+    careers_url: https://jobs.ashbyhq.com/perplexity
+    scan_method: websearch
+    scan_query: 'site:jobs.ashbyhq.com/perplexity "ML Engineer" OR "AI Engineer" OR "New Grad"'
+    notes: "AI-native search — ML / infra new grad fit."
+    enabled: true
+
+  - name: Stability AI
+    careers_url: https://job-boards.greenhouse.io/stabilityai
+    api: https://boards-api.greenhouse.io/v1/boards/stabilityai/jobs
+    notes: "Generative AI lab — research/ML engineer new grad fit."
+    enabled: true
+
+  - name: Black Forest Labs
+    careers_url: https://job-boards.greenhouse.io/blackforestlabs
+    api: https://boards-api.greenhouse.io/v1/boards/blackforestlabs/jobs
+    notes: "Freiburg DE. FLUX image models — research engineer fit."
+    enabled: true
+
+  # -- Big Tech new grad pipelines --
+
+  - name: Palantir
+    careers_url: https://jobs.lever.co/palantir
+    notes: "DISABLED 2026-07-12: roles need US security clearance."
+    enabled: false
+
+  - name: Celonis
+    careers_url: https://job-boards.greenhouse.io/celonis
+    api: https://boards-api.greenhouse.io/v1/boards/celonis/jobs
+    notes: "Munich / NYC. Process intelligence — Data / ML / Platform eng fit."
+    enabled: true
+
+  # -- Automation / Workflow (n8n relevance) --
+
+  - name: n8n
+    careers_url: https://jobs.ashbyhq.com/n8n
+    scan_method: websearch
+    scan_query: 'site:jobs.ashbyhq.com/n8n "Engineer"'
+    notes: "Berlin + remote EU/US. Workflow automation — infra/platform eng fit."
+    enabled: true
+
+  # -- Semiconductor / Industrial --
+
+  - name: KLA Corporation
+    careers_url: https://www.kla.com/careers
+    scan_method: websearch
+    scan_query: '"kla.com" careers "Software Engineer" OR "ML Engineer" OR "Data Scientist" OR "Embedded" OR "Firmware" OR "Platform Engineer" "new grad" OR "entry level"'
+    notes: "Semiconductor equipment & process control. Milpitas CA. Embedded/firmware, ML/data, platform eng fit. F-1 sponsorship offered."
+    enabled: true
+
+  - name: Rohde & Schwarz
+    careers_url: https://www.rohde-schwarz.com/us/career/jobs/career-jobboard_251573.html
+    scan_method: websearch
+    scan_query: 'site:rohde-schwarz.com/us/career "Software Engineer" OR "Embedded" OR "Firmware" OR "ML Engineer" OR "Data Scientist" OR "RF Engineer" "new grad" OR "entry level" OR "junior"'
+    notes: "Test & measurement / RF / signal analysis. US offices (Columbia MD, San Jose CA). Embedded, RF software, ML/data fit. German company — stable, sponsorship-friendly."
+    enabled: true
+
+  # -- Big Tech / Semiconductor --
+
+  - name: Amazon
+    careers_url: https://www.amazon.jobs/en/
+    scan_method: websearch
+    scan_query: 'site:amazon.jobs "Software Development Engineer" OR "ML Engineer" OR "Data Engineer" OR "Data Scientist" OR "Applied Scientist" OR "SDE" "new grad" OR "entry level" OR "university" OR "2025" OR "2026"'
+    notes: "Big tech — SDE, Applied Scientist, ML/Data Engineer new grad pipelines. Strong F-1/H-1B sponsorship. Check amazon.jobs directly for university hiring programs."
+    enabled: true
+
+  - name: Intel
+    careers_url: https://jobs.intel.com/en/search-jobs
+    scan_method: websearch
+    scan_query: 'site:jobs.intel.com "Software Engineer" OR "ML Engineer" OR "Data Scientist" OR "AI Engineer" OR "Firmware Engineer" OR "Platform Engineer" "new grad" OR "entry level" OR "university" OR "recent graduate"'
+    notes: "Semiconductor / CPU / AI accelerators. Strong new grad pipeline (Intel Intern→FTE common). Hillsboro OR, Santa Clara CA, Folsom CA. Excellent F-1/H-1B sponsorship track record."
+    enabled: true
+
+  - name: NVIDIA
+    careers_url: https://jobs.nvidia.com/careers/search
+    scan_method: websearch
+    scan_query: 'site:jobs.nvidia.com OR site:nvidia.wd5.myworkdayjobs.com "Software Engineer" OR "ML Engineer" OR "AI Engineer" OR "Deep Learning Engineer" OR "Data Scientist" OR "Platform Engineer" OR "Firmware Engineer" "new grad" OR "entry level" OR "university" OR "2026"'
+    notes: "GPU / AI accelerators / CUDA. Santa Clara CA. Top-tier target for ML infra, CUDA, deep learning, platform eng. Strong F-1/H-1B sponsorship. Portal migrated to jobs.nvidia.com (Workday URLs may 404 — use jobs.nvidia.com or LinkedIn mirrors to apply)."
+    enabled: true
+
+  - name: Applied Intuition
+    careers_url: https://www.appliedintuition.com/careers
+    scan_method: websearch
+    scan_query: 'site:appliedintuition.com/careers "Software Engineer" OR "ML Engineer" OR "Data Engineer" OR "Platform Engineer" "new grad" OR "entry level" OR "university"'
+    notes: "Autonomous vehicle simulation & software. Sunnyvale CA (5-days onsite). Robotics/AV fit. Previously evaluated Research Eng/Scientist roles (low fit due to AV domain gap). Monitor for SWE/data/infra roles."
+    enabled: true
+
+  - name: Micron Technology
+    careers_url: https://careers.micron.com/careers
+    scan_method: websearch
+    scan_query: 'site:careers.micron.com "Software Engineer" OR "ML Engineer" OR "Data Engineer" OR "AI Engineer" OR "Firmware Engineer" OR "Embedded Engineer" "new grad" OR "entry level" OR "university" OR "intern"'
+    notes: "Memory semiconductors (DRAM/NAND). Boise ID, San Jose CA, Atlanta GA. Embedded, firmware, ML/data, platform eng fit. Strong F-1/H-1B sponsorship history."
+    enabled: true
+
+  - name: Verkada
+    careers_url: https://www.verkada.com/careers/
+    api: https://boards-api.greenhouse.io/v1/boards/verkada/jobs
+    scan_method: websearch
+    scan_query: 'site:job-boards.greenhouse.io/verkada "Software Engineer" OR "ML Engineer" OR "Data Engineer" OR "Backend Engineer" OR "Platform Engineer" "new grad" OR "entry level" OR "university"'
+    notes: "Physical security SaaS (cameras, access control). San Mateo CA. Backend, ML, data, platform eng fit. Greenhouse ATS — API scan available."
+    enabled: true
+
+  - name: Honeywell
+    careers_url: https://ibqbjb.fa.ocs.oraclecloud.com/hcmUI/CandidateExperience/en/sites/Honeywell/jobs
+    scan_method: websearch
+    scan_query: '"honeywell" site:careers.honeywell.com OR site:honeywell.wd5.myworkdayjobs.com "Software Engineer" OR "ML Engineer" OR "Data Scientist" OR "Embedded Engineer" OR "Firmware Engineer" "new grad" OR "entry level" OR "university"'
+    notes: "Industrial automation / aerospace / building tech. Multiple US sites. Embedded, firmware, ML/data, platform eng fit. Oracle Cloud ATS — WebSearch preferred. F-1 sponsorship available."
+    enabled: true
+
+  - name: General Motors
+    careers_url: https://generalmotors.wd5.myworkdayjobs.com/Careers_GM
+    scan_method: websearch
+    scan_query: 'site:generalmotors.wd5.myworkdayjobs.com "Software Engineer" OR "ML Engineer" OR "Data Scientist" OR "AI Engineer" OR "Embedded Engineer" OR "Autonomous" "new grad" OR "entry level" OR "university" OR "2025" OR "2026"'
+    notes: "Automotive / EV / autonomous (Cruise spinout). Detroit MI, Austin TX, Mountain View CA. Embedded, ML/data, autonomous systems fit. Workday ATS. Strong F-1/H-1B sponsorship."
+    enabled: true
+
+  - name: Microsoft
+    careers_url: https://careers.microsoft.com/v2/global/en/home.html
+    scan_method: websearch
+    scan_query: 'site:jobs.careers.microsoft.com "Software Engineer" OR "ML Engineer" OR "Data Scientist" OR "AI Engineer" OR "Research Engineer" "new grad" OR "university" OR "early career" OR "2025" OR "2026"'
+    notes: "Big tech. Redmond WA, NYC, remote. AI/ML, data, platform, research eng fit. Excellent F-1/H-1B sponsorship. Check Microsoft University Recruiting for new grad cohort programs."
+    enabled: true
+
+  - name: Garmin
+    careers_url: https://www.garmin.com/en-US/careers/
+    scan_method: websearch
+    scan_query: '"garmin" site:garmin.com/en-US/careers "Software Engineer" OR "Embedded Engineer" OR "Firmware Engineer" OR "ML Engineer" OR "Data Engineer" OR "Systems Engineer" "new grad" OR "entry level" OR "university" OR "junior"'
+    notes: "GPS / wearables / avionics / marine. Olathe KS (HQ), Chandler AZ, Salem OR. Embedded, firmware, systems, ML fit. F-1 sponsorship available."
+    enabled: true
+
+  - name: Meta
+    careers_url: https://www.metacareers.com/jobsearch/
+    scan_method: websearch
+    scan_query: 'site:metacareers.com "Software Engineer" OR "ML Engineer" OR "Research Engineer" OR "Data Engineer" OR "AI Engineer" "new grad" OR "university grad" OR "entry level" OR "2025" OR "2026"'
+    notes: "Big tech. Menlo Park CA, NYC, Seattle WA, remote. ML/AI, data, research, infra eng fit. Strong F-1/H-1B sponsorship. Check Meta University program for new grad cohort."
+    enabled: true
+
+  - name: IBM
+    careers_url: https://www.ibm.com/careers/search
+    scan_method: websearch
+    scan_query: 'site:ibm.com/careers "Software Engineer" OR "ML Engineer" OR "Data Scientist" OR "AI Engineer" OR "Research Engineer" OR "Platform Engineer" "new grad" OR "entry level" OR "university" OR "early career"'
+    notes: "Enterprise tech / AI research (Watson, watsonx). Armonk NY, Austin TX, Research Triangle NC, remote. AI/ML, data, research eng fit. Strong F-1/H-1B sponsorship. IBM Research is a distinct track worth checking."
+    enabled: true
+
+  # ============================================================
+  # -- Visa sponsor additions --
+  # Product companies with documented F-1 OPT / H-1B sponsorship
+  # history (MyVisaJobs / H1B databases), across the archetypes above:
+  # DB/systems, ML infra, data, robotics, embedded.
+  # ============================================================
+
+  # -- Data / Database / Distributed Systems --
+
+  - name: Databricks
+    careers_url: https://job-boards.greenhouse.io/databricks
+    api: https://boards-api.greenhouse.io/v1/boards/databricks/jobs
+    notes: "Lakehouse / Spark — data eng, ML, platform. Top-tier new grad pipeline + heavy H-1B/F-1 sponsorship. SF, Mountain View, Seattle."
+    enabled: true
+
+  - name: Snowflake
+    careers_url: https://jobs.ashbyhq.com/snowflake
+    notes: "Cloud data warehouse — data/DB systems eng fit. Strong F-1/H-1B sponsorship. San Mateo CA, Bellevue WA."
+    enabled: true
+
+  - name: Cockroach Labs
+    careers_url: https://job-boards.greenhouse.io/cockroachlabs
+    api: https://boards-api.greenhouse.io/v1/boards/cockroachlabs/jobs
+    notes: "Distributed SQL (CockroachDB) — query optimization / DB internals. NYC. H-1B sponsor."
+    enabled: true
+
+  - name: ClickHouse
+    careers_url: https://job-boards.greenhouse.io/clickhouse
+    api: https://boards-api.greenhouse.io/v1/boards/clickhouse/jobs
+    notes: "Columnar OLAP database — DB/systems eng fit, direct query-engine internals overlap. Remote-first, US + EU. H-1B sponsor."
+    enabled: true
+
+  - name: Confluent
+    careers_url: https://jobs.ashbyhq.com/confluent
+    notes: "Kafka / data streaming — distributed systems + data eng fit. Mountain View CA, remote. H-1B sponsor."
+    enabled: true
+
+  - name: MongoDB
+    careers_url: https://job-boards.greenhouse.io/mongodb
+    api: https://boards-api.greenhouse.io/v1/boards/mongodb/jobs
+    notes: "NoSQL database — backend/DB/systems eng fit. NYC. Strong F-1/H-1B sponsorship + new grad program."
+    enabled: true
+
+  - name: Datadog
+    careers_url: https://careers.datadoghq.com/
+    scan_method: websearch
+    scan_query: '"datadog" site:job-boards.greenhouse.io OR site:careers.datadoghq.com "Software Engineer" OR "Data Engineer" OR "ML Engineer" OR "Platform Engineer" "new grad" OR "entry level" OR "university"'
+    notes: "Observability / infra monitoring — backend, data, ML, platform eng fit. NYC, Boston. H-1B sponsor (~150 approvals/yr)."
+    enabled: true
+
+  # -- ML Infra / GPU Cloud / AI Data (ML infra archetype) --
+
+  - name: Scale AI
+    careers_url: https://job-boards.greenhouse.io/scaleai
+    api: https://boards-api.greenhouse.io/v1/boards/scaleai/jobs
+    notes: "AI data infrastructure — ML eng, data eng, backend. Has explicit 'Software Engineer - New Grad' postings. SF. H-1B sponsor."
+    enabled: true
+
+  - name: Together AI
+    careers_url: https://job-boards.greenhouse.io/togetherai
+    api: https://boards-api.greenhouse.io/v1/boards/togetherai/jobs
+    notes: "GPU cloud + open-model inference — ML infra / inference / systems eng fit. SF. H-1B sponsor."
+    enabled: true
+
+  - name: CoreWeave
+    careers_url: https://job-boards.greenhouse.io/coreweave
+    api: https://boards-api.greenhouse.io/v1/boards/coreweave/jobs
+    notes: "AI/GPU cloud — infra/platform/systems eng fit. Roseland NJ, remote. H-1B sponsor."
+    enabled: true
+
+  - name: Baseten
+    careers_url: https://jobs.ashbyhq.com/baseten
+    scan_method: websearch
+    scan_query: 'site:jobs.ashbyhq.com/baseten "Engineer" "new grad" OR "entry level" OR "ML" OR "Infrastructure"'
+    notes: "Model inference / deployment platform — ML infra / backend eng fit. SF. Startup-style eng roles."
+    enabled: true
+
+  # -- Backend / Platform / Infra (large H-1B sponsors) --
+
+  - name: Stripe
+    careers_url: https://stripe.com/jobs/search
+    scan_method: websearch
+    scan_query: 'site:stripe.com/jobs "Software Engineer" OR "Data Engineer" OR "ML Engineer" OR "Infrastructure" "new grad" OR "university" OR "early career"'
+    notes: "Payments infra — backend/systems/data/ML eng fit. SF, Seattle, NYC, remote. Heavy F-1/H-1B sponsorship + new grad program."
+    enabled: true
+
+  - name: Cloudflare
+    careers_url: https://www.cloudflare.com/careers/jobs/
+    scan_method: websearch
+    scan_query: '"cloudflare" site:job-boards.greenhouse.io OR site:cloudflare.com/careers "Software Engineer" OR "Systems Engineer" OR "Platform Engineer" OR "Data" "new grad" OR "early career" OR "university"'
+    notes: "Edge network / systems — backend, systems, platform, networking eng fit (strong networking-fundamentals overlap). Austin TX, remote. H-1B sponsor."
+    enabled: true
+
+  - name: Bloomberg
+    careers_url: https://careers.bloomberg.com/job/search
+    scan_method: websearch
+    scan_query: 'site:careers.bloomberg.com "Software Engineer" OR "Data Engineer" OR "ML Engineer" OR "Systems" "new grad" OR "entry level" OR "campus" OR "2026"'
+    notes: "Financial data/systems — backend, data, systems, ML eng fit. NYC. One of the largest tech H-1B/F-1 sponsors; strong campus/new grad pipeline."
+    enabled: true
+
+  # -- Robotics / Autonomous / Defense (robotics + embedded fit) --
+
+  - name: Anduril
+    careers_url: https://www.anduril.com/early-careers/
+    api: https://boards-api.greenhouse.io/v1/boards/andurilindustries/jobs
+    notes: "DISABLED 2026-07-12: defense roles need US security clearance / US person status."
+    enabled: false
+
+  - name: Skydio
+    careers_url: https://www.skydio.com/careers
+    scan_method: websearch
+    scan_query: '"skydio" site:job-boards.greenhouse.io OR site:skydio.com/careers "Software Engineer" OR "Robotics" OR "Embedded" OR "Autonomy" OR "ML" "new grad" OR "entry level"'
+    notes: "Autonomous drones — robotics software, embedded, autonomy, CV/ML fit. San Mateo CA. NOTE: some defense work may restrict by citizenship — verify per posting."
+    enabled: true
+
+  - name: Samsara
+    careers_url: https://www.samsara.com/company/careers/roles
+    scan_method: websearch
+    scan_query: '"samsara" site:job-boards.greenhouse.io OR site:samsara.com/careers "Software Engineer" OR "Embedded" OR "Firmware" OR "Data Engineer" OR "ML" "new grad" OR "early career"'
+    notes: "IoT / connected operations — embedded, firmware, data, ML, backend eng fit. SF. Explicit new grad SWE roles. H-1B sponsor."
+    enabled: true
+
+  # -- Big Tech / Semiconductor (top F-1/H-1B sponsors) --
+
+  - name: Google
+    careers_url: https://www.google.com/about/careers/applications/jobs/results/
+    scan_method: websearch
+    scan_query: 'site:google.com/about/careers "Software Engineer" OR "Machine Learning" OR "Data" OR "Research" "early career" OR "new grad" OR "university graduate" OR "2026"'
+    notes: "Big tech — SWE, ML, data, research eng. Largest-tier F-1/H-1B sponsor (~1,800 OPT/STEM-OPT students employed). Check Google early-career / university programs."
+    enabled: true
+
+  - name: Apple
+    careers_url: https://jobs.apple.com/en-us/search
+    scan_method: websearch
+    scan_query: 'site:jobs.apple.com "Software Engineer" OR "Machine Learning" OR "Data" OR "Embedded" OR "Platform" "new grad" OR "early career" OR "university" OR "2026"'
+    notes: "Big tech — SWE, ML, embedded, platform, data eng. Cupertino CA + US sites. Top-tier F-1/H-1B sponsor."
+    enabled: true
+
+  - name: Qualcomm
+    careers_url: https://careers.qualcomm.com/careers
+    scan_method: websearch
+    scan_query: 'site:careers.qualcomm.com "Software Engineer" OR "Machine Learning" OR "Embedded" OR "Firmware" OR "Systems" "new grad" OR "entry level" OR "university" OR "associate"'
+    notes: "Mobile/edge silicon, on-device AI — embedded, firmware, ML, systems eng fit. San Diego CA + US sites. Very strong F-1/H-1B sponsorship history."
+    enabled: true
+
+  - name: AMD
+    careers_url: https://careers.amd.com/careers-home/jobs
+    scan_method: websearch
+    scan_query: 'site:careers.amd.com "Software Engineer" OR "Machine Learning" OR "Firmware" OR "GPU" OR "Systems" OR "Platform" "new grad" OR "entry level" OR "university" OR "graduate"'
+    notes: "CPU/GPU/AI accelerators (ROCm) — ML infra, CUDA/GPU-adjacent, firmware, systems eng fit. Santa Clara CA, Austin TX. Strong F-1/H-1B sponsorship."
+    enabled: true
+
+  # -- YC Startup Jobs --
+
+  - name: Work at a Startup (YC)
+    careers_url: https://www.workatastartup.com/jobs
+    scan_method: playwright
+    notes: "YC job board — aggregates intern and new grad roles across YC-backed startups. Good source for early-stage AI/ML/infra roles."
+    enabled: true
+  # -- LinkedIn (local parser: Webscrapper/webscrapper.py guest-API scraper) --
+
+  - name: LinkedIn
+    careers_url: https://www.linkedin.com/jobs/search/
+    scan_method: local_parser
+    parser:
+      command: python3
+      script: Webscrapper/linkedin_scan_parser.py
+      format: jobs-json-v1
+      timeout_ms: 1800000
+      max_buffer_bytes: 8000000
+    notes: "Guest-API scraper over 25 keywords (config: Webscrapper/config.json — 24h window, citizenship/clearance/sponsorship desc filters, fit score). Live scrape ~9 min; parser reuses linkedin_jobs.csv when <6h old. Force refresh: python3 Webscrapper/linkedin_scan_parser.py --fresh. Emitted URLs are the EMPLOYER's apply link, not linkedin.com/jobs/view — the parser resolves them via linkedin_apply.py (needs LINKEDIN_COOKIE: .venv-jobspy/bin/python linkedin_login.py). Easy Apply postings have no employer URL and keep their LinkedIn link. Rows that miss the per-run lookup budget are repaired by linkedin_relink.py in run_scan.sh."
+    enabled: true
+
+  # -- JobSpy (local parser: multi-board scraper — Indeed / Google / ZipRecruiter) --
+
+  - name: JobSpy
+    careers_url: https://www.indeed.com/
+    scan_method: local_parser
+    parser:
+      command: python3
+      script: jobspy_scan_parser.py
+      format: jobs-json-v1
+      timeout_ms: 1200000
+      max_buffer_bytes: 16000000
+    notes: "python-jobspy over 8 archetype searches (config: jobspy_config.json). LinkedIn is excluded by default — the LinkedIn entry above already scrapes it and two scrapers in one run trip its rate limit. Clearance/citizenship words are filtered in the parser (scan.mjs never sees descriptions); title/location/blacklist filters apply here like any provider. Cache: jobspy_jobs.csv, reused when <6h old — force refresh with `python3 jobspy_scan_parser.py --fresh`. Needs .venv-jobspy (python3 -m venv .venv-jobspy && .venv-jobspy/bin/pip install -U python-jobspy)."
+    enabled: true
+
+  # -- JobRight (local parser: 2026 new-grad GitHub job lists) --
+
+  - name: JobRight
+    careers_url: https://jobright.ai/
+    scan_method: local_parser
+    parser:
+      command: python3
+      script: jobright_scan_parser.py
+      format: jobs-json-v1
+      timeout_ms: 1800000
+      max_buffer_bytes: 8000000
+    notes: "jobright-ai/2026-Software-Engineer-New-Grad + 2026-Data-Analysis-New-Grad README tables. Replaces the old `python3 jobright.py data/pipeline.csv` step, which appended straight to pipeline.csv — those rows bypassed every filter and were wiped by the next sync_pipeline_csv.py run. Links are jobright.ai redirects, so dedup_pipeline.py prefers an employer ATS copy of the same role."
+    enabled: true
+
+  # -- SpeedyApply (local parser: 2027 SWE & AI College Jobs GitHub repos) --
+
+  - name: SpeedyApply
+    careers_url: https://speedyapply.com/
+    scan_method: local_parser
+    parser:
+      command: python3
+      script: speedyapply_scan_parser.py
+      format: jobs-json-v1
+      timeout_ms: 1800000
+      max_buffer_bytes: 8000000
+    notes: "speedyapply/2027-SWE-College-Jobs + 2027-AI-College-Jobs (README.md, NEW_GRAD_USA.md). Scrapes direct employer apply links (Greenhouse, Ashby, Lever, Workday, etc.)."
+    enabled: true
+
+  - name: Hedged
+    careers_url: https://hedged-production.up.railway.app/
+    scan_method: local_parser
+    parser:
+      command: python3
+      script: hedged_scan_parser.py
+      format: jobs-json-v1
+      timeout_ms: 60000
+      max_buffer_bytes: 8000000
+    notes: "One-off 2026-09-20: open roles at companies listed on hedged (728 startups; 256 with Greenhouse/Ashby/Lever boards). Static snapshot in data/hedged_jobs.json — disable after the run."
+    enabled: true
+
+  # -- High-growth startups (added 2026-09-09) --
+  # A list of 35 startups that grew headcount most in the trailing 90 days.
+  # 32 run public Ashby boards, verified live on 2026-09-09 via
+  # api.ashbyhq.com/posting-api/job-board/<org> (731 open roles, 91 of them passing
+  # this file's own title_filter + location_filter). The remaining 3 have bespoke
+  # career pages and go through websearch.
+
+  - name: Human Archive
+    careers_url: https://jobs.ashbyhq.com/humanarchive
+    notes: "YC W26. Ashby board, 20 open roles at intake 2026-09-09."
+    enabled: true
+
+  - name: Taste Labs
+    careers_url: https://jobs.ashbyhq.com/Taste-Labs
+    notes: "Ashby board, 8 open roles at intake 2026-09-09."
+    enabled: true
+
+  - name: Prosper AI
+    careers_url: https://jobs.ashbyhq.com/prosper-ai
+    notes: "Ashby board, 11 open roles at intake 2026-09-09."
+    enabled: true
+
+  - name: Broccoli AI
+    careers_url: https://jobs.ashbyhq.com/broccoli
+    notes: "Ashby board, 40 open roles at intake 2026-09-09."
+    enabled: true
+
+  - name: Dominion Dynamics
+    careers_url: https://jobs.ashbyhq.com/Dominion%20Dynamics
+    notes: "Ottawa-based. Ashby board, 25 open roles at intake 2026-09-09."
+    enabled: true
+
+  - name: Norm Law
+    careers_url: https://jobs.ashbyhq.com/normlaw
+    notes: "Ashby board, 11 open roles at intake 2026-09-09."
+    enabled: true
+
+  - name: Corgi
+    careers_url: https://jobs.ashbyhq.com/corgi
+    notes: "Ashby board, 7 open roles at intake 2026-09-09."
+    enabled: true
+
+  - name: Conduct
+    careers_url: https://jobs.ashbyhq.com/conduct
+    notes: "Ashby board, 12 open roles at intake 2026-09-09."
+    enabled: true
+
+  - name: Probook
+    careers_url: https://jobs.ashbyhq.com/probook
+    notes: "Ashby board, 13 open roles at intake 2026-09-09."
+    enabled: true
+
+  - name: Hilbert
+    careers_url: https://jobs.ashbyhq.com/hilberts
+    notes: "Ashby board, 8 open roles at intake 2026-09-09."
+    enabled: true
+
+  - name: XDOF
+    careers_url: https://jobs.ashbyhq.com/XDOF
+    notes: "San Mateo. Ashby board, 18 open roles at intake 2026-09-09."
+    enabled: true
+
+  - name: Wispr Flow
+    careers_url: https://jobs.ashbyhq.com/wispr-flow
+    notes: "Ashby board, 23 open roles at intake 2026-09-09."
+    enabled: true
+
+  - name: Cogent Security
+    careers_url: https://jobs.ashbyhq.com/cogent-security
+    notes: "Ashby board, 30 open roles at intake 2026-09-09."
+    enabled: true
+
+  - name: TENEX.AI
+    careers_url: https://jobs.ashbyhq.com/tenex
+    notes: "Ashby board, 46 open roles at intake 2026-09-09."
+    enabled: true
+
+  - name: Amperos
+    careers_url: https://jobs.ashbyhq.com/amperos
+    notes: "NYC. Ashby board, 19 open roles at intake 2026-09-09."
+    enabled: true
+
+  - name: Telepatia
+    careers_url: https://jobs.ashbyhq.com/telepatia
+    notes: "Ashby board, 20 open roles at intake 2026-09-09."
+    enabled: true
+
+  - name: viktor.com
+    careers_url: https://jobs.ashbyhq.com/viktor
+    notes: "Ashby board, 28 open roles at intake 2026-09-09."
+    enabled: true
+
+  - name: Aaru
+    careers_url: https://jobs.ashbyhq.com/aaru
+    notes: "Ashby board, 29 open roles at intake 2026-09-09."
+    enabled: true
+
+  - name: Poetic
+    careers_url: https://jobs.ashbyhq.com/poetic
+    notes: "Ashby board, 6 open roles at intake 2026-09-09."
+    enabled: true
+
+  - name: Runlayer
+    careers_url: https://jobs.ashbyhq.com/runlayer
+    notes: "Ashby board, 18 open roles at intake 2026-09-09."
+    enabled: true
+
+  - name: AfterQuery
+    careers_url: https://jobs.ashbyhq.com/AfterQuery
+    notes: "Ashby board, 34 open roles at intake 2026-09-09."
+    enabled: true
+
+  - name: Armadin
+    careers_url: https://jobs.ashbyhq.com/armadin
+    notes: "Ashby board, 15 open roles at intake 2026-09-09."
+    enabled: true
+
+  - name: Tessera Labs
+    careers_url: https://jobs.ashbyhq.com/tessera-labs
+    notes: "Ashby board, 19 open roles at intake 2026-09-09."
+    enabled: true
+
+  - name: Warp
+    careers_url: https://jobs.ashbyhq.com/warp
+    notes: "Ashby board, 19 open roles at intake 2026-09-09."
+    enabled: true
+
+  - name: duvo.ai
+    careers_url: https://jobs.ashbyhq.com/duvo
+    notes: "Ashby board, 17 open roles at intake 2026-09-09."
+    enabled: true
+
+  - name: Monaco Inc
+    careers_url: https://jobs.ashbyhq.com/monaco
+    notes: "Ashby board, 16 open roles at intake 2026-09-09."
+    enabled: true
+
+  - name: Simile
+    careers_url: https://jobs.ashbyhq.com/simile
+    notes: "Ashby board, 15 open roles at intake 2026-09-09."
+    enabled: true
+
+  - name: Freehand
+    careers_url: https://jobs.ashbyhq.com/freehand
+    notes: "Ashby board, 13 open roles at intake 2026-09-09."
+    enabled: true
+
+  - name: Bobyard
+    careers_url: https://jobs.ashbyhq.com/bobyard
+    notes: "Ashby board, 31 open roles at intake 2026-09-09."
+    enabled: true
+
+  - name: Higgsfield AI
+    careers_url: https://jobs.ashbyhq.com/higgsfieldai
+    notes: "Ashby board, 74 open roles at intake 2026-09-09."
+    enabled: true
+
+  - name: Brain Co.
+    careers_url: https://jobs.ashbyhq.com/brainco
+    notes: "Ashby board, 33 open roles at intake 2026-09-09."
+    enabled: true
+
+  - name: Serval
+    careers_url: https://jobs.ashbyhq.com/serval
+    notes: "Ashby board, 53 open roles at intake 2026-09-09."
+    enabled: true
+
+  - name: NewCore
+    careers_url: https://newcore.com/careers
+    scan_method: websearch
+    scan_query: 'site:newcore.com "Software Engineer" OR "ML Engineer" OR "AI Engineer" OR "Data Engineer"'
+    notes: "Bespoke careers page, no public board API. Added 2026-09-09."
+    enabled: true
+
+  - name: Vision Lab
+    careers_url: https://thevisionlab.ai/careers
+    scan_method: websearch
+    scan_query: 'site:thevisionlab.ai "Software Engineer" OR "ML Engineer" OR "AI Engineer" OR "Data Engineer"'
+    notes: "Bespoke careers page, no public board API. Added 2026-09-09."
+    enabled: true
+
+  - name: microagi
+    careers_url: https://www.microagi.ai/careers
+    scan_method: websearch
+    scan_query: 'site:www.microagi.ai "Software Engineer" OR "ML Engineer" OR "AI Engineer" OR "Data Engineer"'
+    notes: "Bespoke careers page, no public board API. Added 2026-09-09."
+    enabled: true
+
+  # -- Databases / PostgreSQL ecosystem (added 2026-09-19; boards verified live) --
+
+  - name: Tiger Data
+    careers_url: https://jobs.ashbyhq.com/tigerdata
+    notes: "Formerly Timescale. TimescaleDB is a Postgres extension; Postgres specialist roles."
+    enabled: true
+
+  - name: EDB
+    careers_url: https://job-boards.greenhouse.io/edb
+    api: https://boards-api.greenhouse.io/v1/boards/edb/jobs
+    notes: "EnterpriseDB. Largest PostgreSQL core contributor; Postgres engine / tooling roles."
+    enabled: true
+
+  - name: Percona
+    careers_url: https://jobs.ashbyhq.com/percona
+    notes: "Open-source Postgres/MySQL/Mongo distributions and support. Remote."
+    enabled: true
+
+  - name: Yugabyte
+    careers_url: https://job-boards.greenhouse.io/yugabyte
+    api: https://boards-api.greenhouse.io/v1/boards/yugabyte/jobs
+    notes: "YugabyteDB: distributed SQL that reuses the PostgreSQL query layer. Direct executor fit."
+    enabled: true
+
+  - name: SingleStore
+    careers_url: https://job-boards.greenhouse.io/singlestore
+    api: https://boards-api.greenhouse.io/v1/boards/singlestore/jobs
+    notes: "Distributed SQL / HTAP database. Query engine + storage roles."
+    enabled: true
+
+  - name: Materialize
+    careers_url: https://jobs.ashbyhq.com/materialize
+    notes: "Streaming SQL database, Postgres wire-compatible. NYC."
+    enabled: true
+
+  - name: MotherDuck
+    careers_url: https://jobs.ashbyhq.com/motherduck
+    notes: "Serverless DuckDB. Analytical query engine."
+    enabled: true
+
+  - name: PingCAP
+    careers_url: https://job-boards.greenhouse.io/pingcap
+    api: https://boards-api.greenhouse.io/v1/boards/pingcap/jobs
+    notes: "TiDB distributed SQL. Query optimizer / execution roles."
+    enabled: true
+
+  - name: Couchbase
+    careers_url: https://job-boards.greenhouse.io/couchbaseinc
+    api: https://boards-api.greenhouse.io/v1/boards/couchbaseinc/jobs
+    notes: "Distributed NoSQL database (N1QL/SQL++ query engine)."
+    enabled: true
+
+  - name: Redis
+    careers_url: https://jobs.ashbyhq.com/redis
+    notes: "In-memory database. Core engine + query engine roles."
+    enabled: true
+
+  - name: Neo4j
+    careers_url: https://job-boards.greenhouse.io/neo4j
+    api: https://boards-api.greenhouse.io/v1/boards/neo4j/jobs
+    notes: "Graph database (Cypher query engine)."
+    enabled: true
+
+  - name: Elastic
+    careers_url: https://job-boards.greenhouse.io/elastic
+    api: https://boards-api.greenhouse.io/v1/boards/elastic/jobs
+    notes: "Elasticsearch search/analytics engine. Large board."
+    enabled: true
+
+  - name: Starburst
+    careers_url: https://job-boards.greenhouse.io/starburst
+    api: https://boards-api.greenhouse.io/v1/boards/starburst/jobs
+    notes: "Trino distributed SQL query engine. Query optimization fit."
+    enabled: true
+
+  - name: Dremio
+    careers_url: https://job-boards.greenhouse.io/dremio
+    api: https://boards-api.greenhouse.io/v1/boards/dremio/jobs
+    notes: "Lakehouse SQL query engine (Arrow)."
+    enabled: true
+
+  - name: Imply
+    careers_url: https://job-boards.greenhouse.io/imply
+    api: https://boards-api.greenhouse.io/v1/boards/imply/jobs
+    notes: "Apache Druid real-time analytics database."
+    enabled: true
+
+  - name: StarTree
+    careers_url: https://job-boards.greenhouse.io/startree
+    api: https://boards-api.greenhouse.io/v1/boards/startree/jobs
+    notes: "Apache Pinot real-time OLAP database."
+    enabled: true
+
+  - name: InfluxData
+    careers_url: https://jobs.ashbyhq.com/influxdata
+    notes: "InfluxDB time-series database (Rust/DataFusion engine)."
+    enabled: true
+
+  - name: Weaviate
+    careers_url: https://jobs.ashbyhq.com/weaviate
+    notes: "Open-source vector database."
+    enabled: true
+
+  - name: Chroma
+    careers_url: https://jobs.ashbyhq.com/trychroma
+    notes: "Open-source embedding/vector database."
+    enabled: true
+
+  - name: LanceDB
+    careers_url: https://jobs.ashbyhq.com/lancedb
+    notes: "Vector database on the Lance columnar format."
+    enabled: true
+
+  - name: turbopuffer
+    careers_url: https://jobs.ashbyhq.com/turbopuffer
+    notes: "Serverless vector + full-text search database on object storage."
+    enabled: true
+
+  - name: Zilliz
+    careers_url: https://jobs.lever.co/zilliz
+    notes: "Milvus vector database."
+    enabled: true
+
+  - name: Convex
+    careers_url: https://jobs.ashbyhq.com/convex-dev
+    notes: "Reactive backend database (transactional engine in Rust)."
+    enabled: true
+
+  - name: pganalyze
+    careers_url: https://jobs.ashbyhq.com/pganalyze
+    notes: "Postgres performance tooling; query-plan analysis is a direct fit. Small team."
+    enabled: true
+
+  - name: Tinybird
+    careers_url: https://jobs.lever.co/tinybird
+    notes: "Real-time analytics on ClickHouse."
+    enabled: true
+
+  - name: Prisma
+    careers_url: https://job-boards.greenhouse.io/prisma
+    api: https://boards-api.greenhouse.io/v1/boards/prisma/jobs
+    notes: "Postgres ORM + Prisma Postgres. Board empty at intake 2026-09-19."
+    enabled: true
+
+  # -- International (added 2026-09-22) --
+  # Opens NL, AU, JP, AT, CA and the rest of Europe. Every board
+  # below was verified live on 2026-09-22 via its public API (Greenhouse /
+  # Ashby / Lever / SmartRecruiters) with open roles in those countries.
+  # location_filter was narrowed the same day so these rows are not dropped.
+  # Work authorization differs outside the US: see PIPELINE.md §13.3a.
+
+  - name: IMC Trading
+    careers_url: https://job-boards.greenhouse.io/imc
+    api: https://boards-api.greenhouse.io/v1/boards/imc/jobs
+    notes: "Amsterdam + Sydney. Trading firm; SWE/quant-dev new grad programs. Intake 2026-09-22: 170 open, target-region NL 28, AU 33, EU 31."
+    enabled: true
+
+  - name: Optiver
+    careers_url: https://job-boards.greenhouse.io/optiverus
+    api: https://boards-api.greenhouse.io/v1/boards/optiverus/jobs
+    notes: "Amsterdam + Sydney. Market maker; graduate SWE intakes. Intake 2026-09-22: 162 open, target-region NL 28, AU 33, EU 10."
+    enabled: true
+
+  - name: Flow Traders
+    careers_url: https://job-boards.greenhouse.io/flowtraders
+    api: https://boards-api.greenhouse.io/v1/boards/flowtraders/jobs
+    notes: "Amsterdam. Trading tech; graduate SWE/data roles. Intake 2026-09-22: 47 open, target-region NL 16, EU 6."
+    enabled: true
+
+  - name: Adyen
+    careers_url: https://job-boards.greenhouse.io/adyen
+    api: https://boards-api.greenhouse.io/v1/boards/adyen/jobs
+    notes: "Amsterdam. Payments; big graduate/SWE hiring in NL, sponsors HSM visas. Intake 2026-09-22: 211 open, target-region NL 55, AU 2, JP 7, EU 23."
+    enabled: true
+
+  - name: Mollie
+    careers_url: https://jobs.ashbyhq.com/mollie
+    notes: "Amsterdam. Payments; backend/data eng. Intake 2026-09-22: 43 open, target-region NL 12, EU 30."
+    enabled: true
+
+  - name: Catawiki
+    careers_url: https://job-boards.greenhouse.io/catawiki
+    api: https://boards-api.greenhouse.io/v1/boards/catawiki/jobs
+    notes: "Amsterdam. Marketplace; data/ML eng. Intake 2026-09-22: 46 open, target-region NL 28, JP 1, EU 28."
+    enabled: true
+
+  - name: Bol
+    careers_url: https://job-boards.greenhouse.io/bolcom
+    api: https://boards-api.greenhouse.io/v1/boards/bolcom/jobs
+    notes: "Utrecht. Dutch e-commerce; data/platform eng. Intake 2026-09-22: 37 open, target-region NL 37."
+    enabled: true
+
+  - name: Nebius
+    careers_url: https://job-boards.greenhouse.io/nebius
+    api: https://boards-api.greenhouse.io/v1/boards/nebius/jobs
+    notes: "Amsterdam. AI cloud/GPU infra, HQ Amsterdam — infra/ML-infra fit. Intake 2026-09-22: 389 open, target-region NL 107, JP 1, CA 3, EU 169."
+    enabled: true
+
+  - name: JetBrains
+    careers_url: https://job-boards.greenhouse.io/jetbrains
+    api: https://boards-api.greenhouse.io/v1/boards/jetbrains/jobs
+    notes: "Amsterdam + EU. Dev tools; ML/AI + systems roles. Intake 2026-09-22: 66 open, target-region NL 41, EU 58."
+    enabled: true
+
+  - name: Typeform
+    careers_url: https://job-boards.greenhouse.io/typeform
+    api: https://boards-api.greenhouse.io/v1/boards/typeform/jobs
+    notes: "Barcelona + NL. SaaS; data eng. Intake 2026-09-22: 17 open, target-region NL 7, EU 12."
+    enabled: true
+
+  - name: CuspAI
+    careers_url: https://jobs.ashbyhq.com/cuspai
+    notes: "Amsterdam + Cambridge. AI for materials; research eng. Intake 2026-09-22: 10 open, target-region NL 3, EU 7."
+    enabled: true
+
+  - name: Miro
+    careers_url: https://job-boards.greenhouse.io/realtimeboardglobal
+    api: https://boards-api.greenhouse.io/v1/boards/realtimeboardglobal/jobs
+    notes: "Amsterdam + Berlin. Collaboration SaaS; backend/data. Intake 2026-09-22: 28 open, target-region NL 5, AU 1, JP 6, EU 7."
+    enabled: true
+
+  - name: Bitpanda
+    careers_url: https://job-boards.greenhouse.io/bitpanda
+    api: https://boards-api.greenhouse.io/v1/boards/bitpanda/jobs
+    notes: "Vienna. Fintech HQ Vienna; backend/data eng. Intake 2026-09-22: 26 open, target-region AT 22, EU 7."
+    enabled: true
+
+  - name: GoStudent
+    careers_url: https://job-boards.greenhouse.io/gostudent
+    api: https://boards-api.greenhouse.io/v1/boards/gostudent/jobs
+    notes: "Vienna. Edtech HQ Vienna; data/ML eng. Intake 2026-09-22: 32 open, target-region AT 12, EU 14."
+    enabled: true
+
+  - name: Bitmovin
+    careers_url: https://job-boards.greenhouse.io/bitmovin
+    api: https://boards-api.greenhouse.io/v1/boards/bitmovin/jobs
+    notes: "Klagenfurt/Vienna. Video infra; backend/systems. Intake 2026-09-22: 11 open, target-region AT 5, EU 1."
+    enabled: true
+
+  - name: Planradar
+    careers_url: https://job-boards.greenhouse.io/planradar
+    api: https://boards-api.greenhouse.io/v1/boards/planradar/jobs
+    notes: "Vienna. Construction SaaS; backend/data. Intake 2026-09-22: 7 open, target-region AT 3, EU 3."
+    enabled: true
+
+  - name: refurbed
+    careers_url: https://job-boards.greenhouse.io/refurbed
+    api: https://boards-api.greenhouse.io/v1/boards/refurbed/jobs
+    notes: "Vienna. Marketplace; data eng. Intake 2026-09-22: 6 open, target-region AT 1."
+    enabled: true
+
+  - name: Waabi
+    careers_url: https://jobs.lever.co/waabi
+    notes: "Toronto. Autonomous trucking AI; ML/robotics fit. Intake 2026-09-22: 85 open, target-region CA 47."
+    enabled: true
+
+  - name: Cerebras
+    careers_url: https://jobs.ashbyhq.com/cerebras
+    notes: "Toronto. AI hardware/inference; ML-infra + compiler. Intake 2026-09-22: 117 open, target-region CA 44, EU 2."
+    enabled: true
+
+  - name: Tenstorrent
+    careers_url: https://job-boards.greenhouse.io/tenstorrent
+    api: https://boards-api.greenhouse.io/v1/boards/tenstorrent/jobs
+    notes: "Toronto + Tokyo. AI hardware; ML-infra/compilers/systems. Intake 2026-09-22: 120 open, target-region AU 1, JP 6, CA 44, EU 13."
+    enabled: true
+
+  - name: Wealthsimple
+    careers_url: https://jobs.ashbyhq.com/wealthsimple
+    notes: "Toronto. Fintech; backend/data/ML. Intake 2026-09-22: 44 open, target-region CA 44."
+    enabled: true
+
+  - name: 1Password
+    careers_url: https://jobs.ashbyhq.com/1password
+    notes: "Toronto (remote CA). Security; backend/platform. Intake 2026-09-22: 63 open, target-region CA 48, EU 7."
+    enabled: true
+
+  - name: Instacart
+    careers_url: https://job-boards.greenhouse.io/instacart
+    api: https://boards-api.greenhouse.io/v1/boards/instacart/jobs
+    notes: "Toronto. Marketplace; ML/data eng. Intake 2026-09-22: 111 open, target-region CA 51."
+    enabled: true
+
+  - name: Lightspeed
+    careers_url: https://jobs.ashbyhq.com/lightspeedhq
+    notes: "Montreal. Commerce SaaS; backend/data. Intake 2026-09-22: 158 open, target-region NL 8, AU 4, CA 102, EU 31."
+    enabled: true
+
+  - name: Koho
+    careers_url: https://jobs.ashbyhq.com/koho
+    notes: "Toronto. Fintech; backend/data. Intake 2026-09-22: 9 open, target-region CA 9."
+    enabled: true
+
+  - name: Wave
+    careers_url: https://jobs.lever.co/waveapps
+    notes: "Toronto. SMB fintech; backend/data. Intake 2026-09-22: 6 open, target-region CA 6."
+    enabled: true
+
+  - name: Neo Financial
+    careers_url: https://jobs.ashbyhq.com/neofinancial
+    notes: "Calgary. Fintech; backend/data. Intake 2026-09-22: 82 open, target-region CA 33, EU 3."
+    enabled: true
+
+  - name: Float
+    careers_url: https://jobs.ashbyhq.com/float
+    notes: "Toronto. Fintech; backend. Intake 2026-09-22: 19 open, target-region CA 19."
+    enabled: true
+
+  - name: Ada
+    careers_url: https://job-boards.greenhouse.io/ada18
+    api: https://boards-api.greenhouse.io/v1/boards/ada18/jobs
+    notes: "Toronto. AI customer-service agents; ML/LLM eng. Intake 2026-09-22: 10 open, target-region CA 6, EU 3."
+    enabled: true
+
+  - name: Klue
+    careers_url: https://jobs.ashbyhq.com/klue
+    notes: "Vancouver. SaaS; data/ML. Intake 2026-09-22: 10 open, target-region CA 8, EU 2."
+    enabled: true
+
+  - name: Wattpad
+    careers_url: https://jobs.lever.co/wattpad
+    notes: "Toronto. Media; data/ML. Intake 2026-09-22: 18 open, target-region CA 3."
+    enabled: true
+
+  - name: Hootsuite
+    careers_url: https://careers.smartrecruiters.com/hootsuite
+    notes: "Vancouver. SaaS; backend/data. Intake 2026-09-22: 8 open, target-region CA 4, EU 4."
+    enabled: true
+
+  - name: Woven by Toyota
+    careers_url: https://jobs.lever.co/woven-by-toyota
+    notes: "Tokyo. Toyota software/autonomy; ML, robotics, data, infra. Intake 2026-09-22: 148 open, target-region JP 62, EU 6."
+    enabled: true
+
+  - name: Airwallex
+    careers_url: https://jobs.ashbyhq.com/airwallex
+    notes: "Melbourne/Sydney + Amsterdam + Tokyo. Fintech; backend/data/ML. Intake 2026-09-22: 581 open, target-region NL 24, AU 42, JP 5, CA 7, EU 90."
+    enabled: true
+
+  - name: Canva
+    careers_url: https://careers.smartrecruiters.com/canva
+    notes: "Sydney/Melbourne. Design SaaS; ML/data/backend, graduate program. Intake 2026-09-22: 100 open, target-region NL 2, AU 53, JP 2, AT 1, EU 16."
+    enabled: true
+
+  - name: Culture Amp
+    careers_url: https://job-boards.greenhouse.io/cultureamp
+    api: https://boards-api.greenhouse.io/v1/boards/cultureamp/jobs
+    notes: "Melbourne. HR SaaS; data/ML. Intake 2026-09-22: 41 open, target-region AU 17, EU 8."
+    enabled: true
+
+  - name: Relevance AI
+    careers_url: https://jobs.ashbyhq.com/relevanceai
+    notes: "Sydney. AI agent platform; AI eng. Intake 2026-09-22: 4 open, target-region AU 4."
+    enabled: true
+
+  - name: Lorikeet
+    careers_url: https://jobs.ashbyhq.com/lorikeet
+    notes: "Sydney. AI support agents; AI eng. Intake 2026-09-22: 7 open, target-region AU 4."
+    enabled: true
+
+  - name: Immutable
+    careers_url: https://jobs.lever.co/immutable
+    notes: "Sydney. Web3 games infra; backend. Intake 2026-09-22: 7 open, target-region AU 5, EU 1."
+    enabled: true
+
+  - name: Octopus Deploy
+    careers_url: https://job-boards.greenhouse.io/octopusdeploy
+    api: https://boards-api.greenhouse.io/v1/boards/octopusdeploy/jobs
+    notes: "Brisbane. DevOps tooling; platform eng. Intake 2026-09-22: 4 open, target-region AU 2, EU 1."
+    enabled: true
+
+  - name: Deputy
+    careers_url: https://jobs.lever.co/deputy
+    notes: "Sydney. Workforce SaaS; backend/data. Intake 2026-09-22: 10 open, target-region AU 6, EU 2."
+    enabled: true
+
+  - name: Buildkite
+    careers_url: https://job-boards.greenhouse.io/buildkite
+    api: https://boards-api.greenhouse.io/v1/boards/buildkite/jobs
+    notes: "Melbourne. CI/CD platform; platform/infra. Intake 2026-09-22: 9 open, target-region AU 1, EU 1."
+    enabled: true
+
+  - name: Helsing
+    careers_url: https://job-boards.greenhouse.io/helsing
+    api: https://boards-api.greenhouse.io/v1/boards/helsing/jobs
+    notes: "Munich/London/Berlin. Defence AI — check nationality/clearance in each JD. Intake 2026-09-22: 156 open, target-region AU 1, EU 141."
+    enabled: true
+
+  - name: Graphcore
+    careers_url: https://job-boards.greenhouse.io/graphcore
+    api: https://boards-api.greenhouse.io/v1/boards/graphcore/jobs
+    notes: "Bristol/Cambridge UK. AI hardware; ML-infra/compilers. Intake 2026-09-22: 173 open, target-region EU 103."
+    enabled: true
+
+  - name: Canonical
+    careers_url: https://job-boards.greenhouse.io/canonical
+    api: https://boards-api.greenhouse.io/v1/boards/canonical/jobs
+    notes: "Remote EU/global. Ubuntu; Kubernetes/Linux/platform. Intake 2026-09-22: 305 open, target-region JP 1, CA 2, EU 141."
+    enabled: true
+
+  - name: ElevenLabs
+    careers_url: https://jobs.ashbyhq.com/elevenlabs
+    notes: "London/Warsaw + global. Voice AI; ML/research/backend. Intake 2026-09-22: 225 open, target-region NL 22, AU 10, JP 13, CA 13, EU 114."
+    enabled: true
+
+  - name: Synthesia
+    careers_url: https://jobs.ashbyhq.com/synthesia
+    notes: "London. Video gen AI; ML/backend. Intake 2026-09-22: 52 open, target-region EU 35."
+    enabled: true
+
+  - name: Faculty
+    careers_url: https://jobs.ashbyhq.com/faculty
+    notes: "London. Applied AI consultancy; ML/data eng. Intake 2026-09-22: 72 open, target-region EU 72."
+    enabled: true
+
+  - name: Speechmatics
+    careers_url: https://job-boards.greenhouse.io/speechmatics
+    api: https://boards-api.greenhouse.io/v1/boards/speechmatics/jobs
+    notes: "Cambridge UK. Speech AI; ML eng. Intake 2026-09-22: 6 open, target-region EU 5."
+    enabled: true
+
+  - name: Monzo
+    careers_url: https://job-boards.greenhouse.io/monzo
+    api: https://boards-api.greenhouse.io/v1/boards/monzo/jobs
+    notes: "London. Bank; backend/data/ML. Intake 2026-09-22: 68 open, target-region EU 68."
+    enabled: true
+
+  - name: Quantexa
+    careers_url: https://jobs.ashbyhq.com/quantexa
+    notes: "London. Decision intelligence; data/ML eng. Intake 2026-09-22: 30 open, target-region AU 1, JP 1, CA 1, EU 13."
+    enabled: true
+
+  - name: Marshmallow
+    careers_url: https://jobs.ashbyhq.com/marshmallow
+    notes: "London. Insurtech; data/backend. Intake 2026-09-22: 12 open, target-region EU 11."
+    enabled: true
+
+  - name: Jane Street
+    careers_url: https://job-boards.greenhouse.io/janestreet
+    api: https://boards-api.greenhouse.io/v1/boards/janestreet/jobs
+    notes: "London/Amsterdam. Trading; SWE new grad. Intake 2026-09-22: 230 open, target-region EU 58."
+    enabled: true
+
+  - name: Hudson River Trading
+    careers_url: https://job-boards.greenhouse.io/wehrtyou
+    api: https://boards-api.greenhouse.io/v1/boards/wehrtyou/jobs
+    notes: "London. Trading; SWE/algo dev new grad. Intake 2026-09-22: 83 open, target-region EU 30."
+    enabled: true
+
+  - name: Man Group
+    careers_url: https://job-boards.greenhouse.io/mangroup
+    api: https://boards-api.greenhouse.io/v1/boards/mangroup/jobs
+    notes: "London. Quant fund; data/SWE. Intake 2026-09-22: 59 open, target-region EU 24."
+    enabled: true
+
+  - name: Lovable
+    careers_url: https://jobs.ashbyhq.com/lovable
+    notes: "Stockholm. AI app builder; AI/backend. Intake 2026-09-22: 79 open, target-region EU 65."
+    enabled: true
+
+  - name: Legora
+    careers_url: https://jobs.ashbyhq.com/legora
+    notes: "Stockholm + global. Legal AI; AI/backend. Intake 2026-09-22: 282 open, target-region AU 11, JP 3, CA 8, EU 111."
+    enabled: true
+
+  - name: Spotify
+    careers_url: https://jobs.lever.co/spotify
+    notes: "Stockholm/London. Streaming; ML/data eng. Intake 2026-09-22: 76 open, target-region CA 1, EU 40."
+    enabled: true
+
+  - name: Pleo
+    careers_url: https://jobs.ashbyhq.com/pleo
+    notes: "Copenhagen. Fintech; backend/data. Intake 2026-09-22: 30 open, target-region NL 2, EU 28."
+    enabled: true
+
+  - name: Corti
+    careers_url: https://jobs.ashbyhq.com/corti
+    notes: "Copenhagen. Medical speech AI; ML eng. Intake 2026-09-22: 4 open, target-region EU 3."
+    enabled: true
+
+  - name: Veo
+    careers_url: https://jobs.lever.co/veo
+    notes: "Copenhagen. Sports video AI; CV/ML. Intake 2026-09-22: 18 open, target-region AU 1, EU 16."
+    enabled: true
+
+  - name: Supercell
+    careers_url: https://jobs.ashbyhq.com/supercell
+    notes: "Helsinki. Games; data/backend. Intake 2026-09-22: 40 open, target-region EU 36."
+    enabled: true
+
+  - name: Wolt
+    careers_url: https://job-boards.greenhouse.io/wolt
+    api: https://boards-api.greenhouse.io/v1/boards/wolt/jobs
+    notes: "Helsinki + EU. Delivery; data/ML/backend. Intake 2026-09-22: 227 open, target-region AT 5, EU 116."
+    enabled: true
+
+  - name: N26
+    careers_url: https://job-boards.greenhouse.io/n26
+    api: https://boards-api.greenhouse.io/v1/boards/n26/jobs
+    notes: "Berlin/Vienna. Bank; backend/data. Intake 2026-09-22: 75 open, target-region AT 2, EU 75."
+    enabled: true
+
+  - name: Trade Republic
+    careers_url: https://job-boards.greenhouse.io/traderepublicbank
+    api: https://boards-api.greenhouse.io/v1/boards/traderepublicbank/jobs
+    notes: "Berlin. Broker; backend/data. Intake 2026-09-22: 40 open, target-region EU 15."
+    enabled: true
+
+  - name: DeepL
+    careers_url: https://jobs.ashbyhq.com/deepl
+    notes: "Cologne + Amsterdam + Tokyo. Translation AI; ML/research eng. Intake 2026-09-22: 40 open, target-region NL 1, JP 9, AT 1, EU 27."
+    enabled: true
+
+  - name: Isar Aerospace
+    careers_url: https://job-boards.greenhouse.io/isaraerospace
+    api: https://boards-api.greenhouse.io/v1/boards/isaraerospace/jobs
+    notes: "Munich. Launch vehicles; embedded/systems — check export-control notes. Intake 2026-09-22: 103 open, target-region CA 1, EU 102."
+    enabled: true
+
+  - name: Sereact
+    careers_url: https://jobs.ashbyhq.com/sereact
+    notes: "Stuttgart. Robotics AI; ML/robotics fit. Intake 2026-09-22: 39 open, target-region EU 34."
+    enabled: true
+
+  - name: RobCo
+    careers_url: https://jobs.ashbyhq.com/robco
+    notes: "Munich. Modular robots; robotics/SWE. Intake 2026-09-22: 42 open, target-region EU 33."
+    enabled: true
+
+  - name: Parloa
+    careers_url: https://jobs.ashbyhq.com/parloa
+    notes: "Berlin/Munich. Voice AI agents; AI eng. Intake 2026-09-22: 49 open, target-region EU 30."
+    enabled: true
+
+  - name: Enpal
+    careers_url: https://jobs.ashbyhq.com/enpal
+    notes: "Berlin. Solar/cleantech; data/backend. Intake 2026-09-22: 146 open, target-region EU 91."
+    enabled: true
+
+  - name: GetYourGuide
+    careers_url: https://job-boards.greenhouse.io/getyourguide
+    api: https://boards-api.greenhouse.io/v1/boards/getyourguide/jobs
+    notes: "Berlin/Zurich. Travel marketplace; data/ML. Intake 2026-09-22: 52 open, target-region NL 2, JP 1, EU 43."
+    enabled: true
+
+  - name: Delivery Hero
+    careers_url: https://careers.smartrecruiters.com/deliveryhero
+    notes: "Berlin. Delivery; data/ML/backend. Intake 2026-09-22: 100 open, target-region EU 33."
+    enabled: true
+
+  - name: Contentful
+    careers_url: https://job-boards.greenhouse.io/contentful
+    api: https://boards-api.greenhouse.io/v1/boards/contentful/jobs
+    notes: "Berlin. CMS SaaS; backend/platform. Intake 2026-09-22: 19 open, target-region AU 1, EU 12."
+    enabled: true
+
+  - name: Proton
+    careers_url: https://job-boards.greenhouse.io/proton
+    api: https://boards-api.greenhouse.io/v1/boards/proton/jobs
+    notes: "Geneva/Zurich. Privacy software; backend/infra. Intake 2026-09-22: 62 open, target-region EU 59."
+    enabled: true
+
+  - name: Scandit
+    careers_url: https://job-boards.greenhouse.io/scandit
+    api: https://boards-api.greenhouse.io/v1/boards/scandit/jobs
+    notes: "Zurich. Mobile CV; CV/ML eng. Intake 2026-09-22: 14 open, target-region EU 7."
+    enabled: true
+
+  - name: ANYbotics
+    careers_url: https://jobs.lever.co/anybotics
+    notes: "Zurich. Legged robots; robotics SWE. Intake 2026-09-22: 16 open, target-region EU 14."
+    enabled: true
+
+  - name: Alan
+    careers_url: https://jobs.ashbyhq.com/alan
+    notes: "Paris. Health insurer; backend/data/ML. Intake 2026-09-22: 119 open, target-region NL 1, CA 3, EU 102."
+    enabled: true
+
+  - name: H Company
+    careers_url: https://jobs.ashbyhq.com/hcompany
+    notes: "Paris. AI agents lab; ML/research eng. Intake 2026-09-22: 21 open, target-region EU 15."
+    enabled: true
+
+  - name: Photoroom
+    careers_url: https://jobs.ashbyhq.com/photoroom
+    notes: "Paris. Image gen AI; ML eng. Intake 2026-09-22: 18 open, target-region EU 16."
+    enabled: true
+
+  - name: Dust
+    careers_url: https://jobs.ashbyhq.com/dust
+    notes: "Paris. AI agent platform; AI/backend. Intake 2026-09-22: 23 open, target-region EU 16."
+    enabled: true
+
+  - name: Doctolib
+    careers_url: https://job-boards.greenhouse.io/doctolib
+    api: https://boards-api.greenhouse.io/v1/boards/doctolib/jobs
+    notes: "Paris/Berlin. Health tech; data/backend. Intake 2026-09-22: 154 open, target-region EU 134."
+    enabled: true
+
+  - name: Qonto
+    careers_url: https://jobs.ashbyhq.com/qonto
+    notes: "Paris. Fintech; backend/data. Intake 2026-09-22: 46 open, target-region NL 1, EU 45."
+    enabled: true
+
+  - name: Pigment
+    careers_url: https://jobs.lever.co/pigment
+    notes: "Paris. Planning SaaS; backend/data. Intake 2026-09-22: 136 open, target-region CA 21, EU 81."
+    enabled: true
+
+  - name: Mirakl
+    careers_url: https://job-boards.greenhouse.io/mirakl
+    api: https://boards-api.greenhouse.io/v1/boards/mirakl/jobs
+    notes: "Paris. Marketplace SaaS; data/backend. Intake 2026-09-22: 16 open, target-region AU 2, EU 16."
+    enabled: true
+
+  - name: Intercom
+    careers_url: https://job-boards.greenhouse.io/intercom
+    api: https://boards-api.greenhouse.io/v1/boards/intercom/jobs
+    notes: "Dublin/London. Support AI (Fin); ML/backend. Intake 2026-09-22: 117 open, target-region AU 7, EU 69."
+    enabled: true
+
+  - name: Cabify
+    careers_url: https://job-boards.greenhouse.io/cabify
+    api: https://boards-api.greenhouse.io/v1/boards/cabify/jobs
+    notes: "Madrid. Mobility; data/backend. Intake 2026-09-22: 68 open, target-region EU 28."
+    enabled: true
+
+  - name: Wise
+    careers_url: https://careers.smartrecruiters.com/wise
+    notes: "London/Tallinn + global. Fintech; backend/data. Intake 2026-09-22: 100 open, target-region JP 2, EU 57."
+    enabled: true
+
+  - name: GitLab
+    careers_url: https://job-boards.greenhouse.io/gitlab
+    api: https://boards-api.greenhouse.io/v1/boards/gitlab/jobs
+    notes: "Remote NL/CA/EU. DevOps platform; backend/infra. Intake 2026-09-22: 202 open, target-region NL 5, AU 5, JP 4, AT 1, CA 58, EU 58."
+    enabled: true
+
+  - name: Grafana Labs
+    careers_url: https://job-boards.greenhouse.io/grafanalabs
+    api: https://boards-api.greenhouse.io/v1/boards/grafanalabs/jobs
+    notes: "Remote EU/CA. Observability — Prometheus/Grafana. Intake 2026-09-22: 138 open, target-region NL 5, AU 2, JP 2, CA 14, EU 71."
+    enabled: true
+
+  - name: Pinterest
+    careers_url: https://job-boards.greenhouse.io/pinterest
+    api: https://boards-api.greenhouse.io/v1/boards/pinterest/jobs
+    notes: "Toronto + EU. ML/data eng. Intake 2026-09-22: 157 open, target-region JP 1, CA 12, EU 13."
+    enabled: true
+
+  - name: Dropbox
+    careers_url: https://job-boards.greenhouse.io/dropbox
+    api: https://boards-api.greenhouse.io/v1/boards/dropbox/jobs
+    notes: "Remote CA + EU. Infra/ML. Intake 2026-09-22: 44 open, target-region AU 1, JP 3, CA 13, EU 5."
+    enabled: true
+
+  - name: Figma
+    careers_url: https://job-boards.greenhouse.io/figma
+    api: https://boards-api.greenhouse.io/v1/boards/figma/jobs
+    notes: "London/Berlin + Tokyo. Backend/infra. Intake 2026-09-22: 155 open, target-region AU 4, JP 8, EU 32."
+    enabled: true
+
+  - name: Notion
+    careers_url: https://jobs.ashbyhq.com/notion
+    notes: "Tokyo/Dublin. Backend/AI. Intake 2026-09-22: 128 open, target-region AU 1, JP 14, EU 29."
+    enabled: true
+
+  - name: Sentry
+    careers_url: https://jobs.ashbyhq.com/sentry
+    notes: "Vienna + Toronto. Observability; backend/infra. Intake 2026-09-22: 47 open, target-region NL 2, AT 6, CA 9."
+    enabled: true
+
+  - name: Modal
+    careers_url: https://jobs.ashbyhq.com/modal
+    notes: "Stockholm. Serverless GPU infra — ML-infra fit. Intake 2026-09-22: 39 open, target-region EU 12."
+    enabled: true
+
+  - name: Poolside
+    careers_url: https://jobs.ashbyhq.com/poolside
+    notes: "Paris/London. Code LLMs; ML/research eng. Intake 2026-09-22: 6 open, target-region EU 5."
+    enabled: true
